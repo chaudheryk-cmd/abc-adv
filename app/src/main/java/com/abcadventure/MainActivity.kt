@@ -17,10 +17,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -28,7 +27,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -149,19 +147,13 @@ private fun ABCAdventure(tts: TextToSpeech) {
                             hasTapped = true
                             isSpeaking = true
                             val current = alphabet[letterIndex]
-                            speak(
-                                tts,
-                                "Letter ${current.upper}. ${current.upper} says ${current.phonics}. ${current.upper} is for ${current.word}."
-                            )
+                            speak(tts, "Letter ${current.upper}. ${current.upper} says ${current.phonics}. ${current.upper} is for ${current.word}.")
                         }
                     },
                     onReplay = {
                         val current = alphabet[letterIndex]
                         isSpeaking = true
-                        speak(
-                            tts,
-                            "Letter ${current.upper}. ${current.upper} says ${current.phonics}. ${current.upper} is for ${current.word}."
-                        )
+                        speak(tts, "Letter ${current.upper}. ${current.upper} says ${current.phonics}. ${current.upper} is for ${current.word}.")
                     },
                     onAutoAdvance = {
                         if (hasTapped) {
@@ -352,10 +344,7 @@ private fun LessonScreen(
                     .size(240.dp)
                     .scale(if (!hasTapped) pulseScale else 1f)
                     .shadow(14.dp, CircleShape)
-                    .background(
-                        Brush.linearGradient(listOf(letter.color, letter.color.copy(alpha = .72f))),
-                        CircleShape
-                    )
+                    .background(Brush.linearGradient(listOf(letter.color, letter.color.copy(alpha = .72f))), CircleShape)
                     .clickable(enabled = !hasTapped, onClick = onTapLetter),
                 contentAlignment = Alignment.Center
             ) {
@@ -372,46 +361,41 @@ private fun LessonScreen(
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = .95f))
         ) {
-            Column(Modifier.fillMaxWidth().padding(vertical = 14.dp, horizontal = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("${letter.upper} for ${letter.word}", fontSize = 28.sp, fontWeight = FontWeight.Black)
-                Text(letter.emoji, fontSize = 62.sp)
-                AnimatedVisibility(visible = hasTapped) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("${letter.upper} says ${letter.phonics}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = letter.color)
-                        Text("Listen and say it with me!", fontSize = 15.sp, color = Color(0xFF706978))
+            Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(letter.emoji, fontSize = 56.sp)
+                Text("${letter.upper} for ${letter.word}", fontSize = 27.sp, fontWeight = FontWeight.Black, color = Color(0xFF332C45))
+                Spacer(Modifier.height(4.dp))
+                Text("Sound: ${letter.phonics}", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF6B6376))
+                Spacer(Modifier.height(14.dp))
+                if (hasTapped) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        OutlinedButton(
+                            onClick = onReplay,
+                            shape = RoundedCornerShape(18.dp),
+                            modifier = Modifier.weight(1f).height(54.dp)
+                        ) {
+                            Text("🔊", fontSize = 20.sp)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Hear again", fontWeight = FontWeight.Bold)
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(18.dp),
+                            color = Color(0xFFE8F7EA),
+                            modifier = Modifier.weight(1f).height(54.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(if (index < alphabet.lastIndex) "Next letter…" else "Finishing…", fontWeight = FontWeight.Bold, color = Color(0xFF2C7540))
+                            }
+                        }
                     }
+                } else {
+                    Text("Tap the letter to hear it, then we’ll move on!", fontSize = 15.sp, color = Color(0xFF756E7E))
                 }
             }
         }
 
         Spacer(Modifier.height(14.dp))
-        if (hasTapped) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedButton(
-                    onClick = onReplay,
-                    shape = RoundedCornerShape(18.dp),
-                    modifier = Modifier.weight(1f).height(54.dp)
-                ) {
-                    Icon(Icons.Default.VolumeUp, contentDescription = "Hear again")
-                    Spacer(Modifier.width(6.dp))
-                    Text("Hear again", fontWeight = FontWeight.Bold)
-                }
-                Surface(
-                    shape = RoundedCornerShape(18.dp),
-                    color = Color(0xFFE8F7EA),
-                    modifier = Modifier.weight(1f).height(54.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(if (isSpeaking) "🔊 Listening…" else "✨ Next one…", fontWeight = FontWeight.Bold, color = Color(0xFF2F7D45))
-                    }
-                }
-            }
-        } else {
-            Text("Touch the letter to hear its name and sound.", fontSize = 16.sp, color = Color(0xFF716A79), modifier = Modifier.align(Alignment.CenterHorizontally))
-        }
-
-        Spacer(Modifier.weight(1f))
-        Text("${index + 1} of 26", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF6D6575), modifier = Modifier.align(Alignment.CenterHorizontally))
+        Text("${index + 1} of ${alphabet.size}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF6E6678), modifier = Modifier.align(Alignment.CenterHorizontally))
     }
 }
 
@@ -419,16 +403,15 @@ private fun LessonScreen(
 private fun ProgressDots(index: Int) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        contentPadding = PaddingValues(horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.Center,
+        contentPadding = PaddingValues(horizontal = 4.dp)
     ) {
         itemsIndexed(alphabet) { i, _ ->
             Box(
                 Modifier
-                    .width(if (i == index) 22.dp else 7.dp)
-                    .height(7.dp)
-                    .background(if (i <= index) Color(0xFF6C5CE7) else Color(0xFFD8D2E4), RoundedCornerShape(10.dp))
+                    .padding(horizontal = 2.dp)
+                    .size(if (i == index) 9.dp else 6.dp)
+                    .background(if (i <= index) Color(0xFF6750E8) else Color(0xFFD7D0E0), CircleShape)
             )
         }
     }
@@ -437,30 +420,28 @@ private fun ProgressDots(index: Int) {
 @Composable
 private fun CompleteScreen(name: String, onReplay: () -> Unit, onHome: () -> Unit) {
     val infinite = rememberInfiniteTransition(label = "celebrate")
-    val bounce by infinite.animateFloat(
-        initialValue = 0.96f,
-        targetValue = 1.04f,
-        animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse),
-        label = "bounce"
+    val scale by infinite.animateFloat(
+        initialValue = .95f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
+        label = "celebrateScale"
     )
     Column(
-        Modifier.fillMaxSize().padding(28.dp),
+        Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("🎉", fontSize = 92.sp, modifier = Modifier.scale(bounce))
-        Spacer(Modifier.height(10.dp))
-        Text("Amazing, $name!", fontSize = 38.sp, fontWeight = FontWeight.Black, color = Color(0xFF5948D7))
-        Text("You learned all 26 letters!", fontSize = 23.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(8.dp))
-        Text("A, B, C… all the way to Z! 🌟", fontSize = 17.sp, color = Color(0xFF6E6677))
-        Spacer(Modifier.height(28.dp))
-        Button(onClick = onReplay, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth().height(58.dp)) {
-            Text("PLAY AGAIN 🔄", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+        Text("🎉", fontSize = 88.sp, modifier = Modifier.scale(scale))
+        Spacer(Modifier.height(12.dp))
+        Text("Amazing, $name!", fontSize = 38.sp, fontWeight = FontWeight.Black, color = Color(0xFF5B49D8))
+        Text("You learned all 26 letters!", fontSize = 21.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4C4658))
+        Spacer(Modifier.height(26.dp))
+        Button(onClick = onReplay, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth().height(60.dp)) {
+            Text("PLAY AGAIN 🔁", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
         }
         Spacer(Modifier.height(10.dp))
-        OutlinedButton(onClick = onHome, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth().height(54.dp)) {
-            Text("CHANGE PLAYER", fontWeight = FontWeight.Bold)
+        OutlinedButton(onClick = onHome, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth().height(56.dp)) {
+            Text("CHANGE PLAYER", fontSize = 17.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
