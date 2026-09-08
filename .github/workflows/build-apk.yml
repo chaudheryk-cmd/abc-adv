@@ -36,7 +36,7 @@ jobs:
 
       - name: Prepare Kotlin source
         run: |
-          sed -i '/import androidx.compose.foundation.layout.Column$/a import androidx.compose.foundation.layout.ColumnScope' app/src/main/java/com/abcadventure/MainActivity.kt
+          sed -i '/import androidx.compose.foundation.layout.Arrangement/a import androidx.compose.foundation.layout.ColumnScope' app/src/main/java/com/abcadventure/MainActivity.kt
 
       - name: Build debug APK
         run: gradle assembleDebug --no-daemon
