@@ -5,7 +5,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '0 * * * *'
 
 jobs:
   build:
@@ -33,6 +33,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
+
+      - name: Prepare Kotlin source
+        run: |
+          sed -i '/import androidx.compose.foundation.layout.Column$/a import androidx.compose.foundation.layout.ColumnScope' app/src/main/java/com/abcadventure/MainActivity.kt
 
       - name: Build debug APK
         run: gradle assembleDebug --no-daemon
