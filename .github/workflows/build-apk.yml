@@ -36,7 +36,16 @@ jobs:
 
       - name: Prepare Kotlin source
         run: |
-          sed -i '/import androidx.compose.foundation.layout.Arrangement/a import androidx.compose.foundation.layout.ColumnScope' app/src/main/java/com/abcadventure/MainActivity.kt
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/src/main/java/com/abcadventure/MainActivity.kt')
+          s = p.read_text()
+          old = '''        AnimatedVisibility(tapped, enter = fadeIn(tween(250)) + scaleIn(), initiallyVisible = true) {\n            Text("${letter.emoji}  ${letter.upper} for ${letter.word}!", fontSize = 23.sp, fontWeight = FontWeight.Black)\n        }'''
+          new = '''        if (tapped) {\n            Text("${letter.emoji}  ${letter.upper} for ${letter.word}!", fontSize = 23.sp, fontWeight = FontWeight.Black)\n        }'''
+          if old in s:
+              s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
 
       - name: Build debug APK
         run: gradle assembleDebug --no-daemon
