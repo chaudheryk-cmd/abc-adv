@@ -40,6 +40,8 @@ jobs:
           from pathlib import Path
           p = Path('app/src/main/java/com/abcadventure/MainActivity.kt')
           s = p.read_text()
+          if 'import androidx.compose.foundation.layout.ColumnScope' not in s:
+              s = s.replace('import androidx.compose.foundation.layout.Column\n', 'import androidx.compose.foundation.layout.Column\nimport androidx.compose.foundation.layout.ColumnScope\n', 1)
           old = '''        AnimatedVisibility(tapped, enter = fadeIn(tween(250)) + scaleIn(), initiallyVisible = true) {\n            Text("${letter.emoji}  ${letter.upper} for ${letter.word}!", fontSize = 23.sp, fontWeight = FontWeight.Black)\n        }'''
           new = '''        if (tapped) {\n            Text("${letter.emoji}  ${letter.upper} for ${letter.word}!", fontSize = 23.sp, fontWeight = FontWeight.Black)\n        }'''
           if old in s:
