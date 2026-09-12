@@ -14,11 +14,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,15 +45,15 @@ fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, comple
     val all = remember { hpcBookDays() }
     val d = all.getOrNull(di)
     val pageCount = d?.pages?.size ?: 1
-    val safePage = page.coerceIn(0, (pageCount - 1).coerceAtLeast(0))
     val rotation = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
     var dragDistance by remember { mutableFloatStateOf(0f) }
+    var turning by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().background(Leather)) {
-        ReaderTopBar(di, safePage, pageCount, bookmarked, close, openIndex, toggleBookmark)
+        ReaderTopBar(di, page.coerceIn(0, (pageCount - 1).coerceAtLeast(0)), pageCount, bookmarked, close, openIndex, toggleBookmark)
         LinearProgressIndicator(
-            progress = { ((di + safePage.toFloat() / pageCount.coerceAtLeast(1)) / 45f).coerceIn(0f, 1f) },
+            progress = { ((di + page.coerceIn(0, (pageCount - 1).coerceAtLeast(0)).toFloat() / pageCount.coerceAtLeast(1)) / 45f).coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth().height(3.dp),
             color = Color(0xFF9569D9),
             trackColor = Color(0xFF2D3948)
@@ -62,67 +63,116 @@ fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, comple
             contentAlignment = Alignment.Center
         ) {
             val widthPx = constraints.maxWidth.toFloat().coerceAtLeast(1f)
+            val safePage = page.coerceIn(0, (pageCount - 1).coerceAtLeast(0))
             val canGoBack = safePage > 0
             val canGoForward = safePage < pageCount - 1
+            val direction = if (dragDistance < 0f) -1f else 1f
             val targetPage = when {
                 dragDistance < -20f && canGoForward -> safePage + 1
                 dragDistance > 20f && canGoBack -> safePage - 1
                 else -> safePage
             }
+
             if (d == null) {
                 Text("This chapter is being prepared.", color = Color.White, fontFamily = Handwritten, fontSize = 22.sp)
             } else {
-                if (targetPage != safePage) NotebookPage(d, targetPage)
-                NotebookPage(
-                    d = d,
-                    page = safePage,
-                    modifier = Modifier
+                // The destination sheet sits underneath the turning sheet, just like a real book.
+                if (targetPage != safePage) {
+                    NotebookPage(
+                        d = d,
+                        page = targetPage,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                val reveal = (abs(dragDistance) / widthPx).coerceIn(0f, 1f)
+                                scaleX = .985f + reveal * .015f
+                                scaleY = .985f + reveal * .015f
+                                alpha = .82f + reveal * .18f
+                            }
+                    )
+                }
+
+                // A physical-looking sheet: follows the finger, rotates around its actual binding edge,
+                // casts a moving shadow and darkens toward the fold as it turns.
+                Box(
+                    Modifier
                         .fillMaxSize()
                         .graphicsLayer {
                             rotationY = rotation.value
-                            transformOrigin = if (rotation.value >= 0f) TransformOrigin(0f, .5f) else TransformOrigin(1f, .5f)
-                            cameraDistance = 32f * density
-                            shadowElevation = if (abs(rotation.value) > 2f) 14f else 0f
+                            transformOrigin = if (rotation.value < 0f) TransformOrigin(0f, .5f) else TransformOrigin(1f, .5f)
+                            cameraDistance = 48f * density
+                            shadowElevation = if (abs(rotation.value) > 1f) 22f else 8f
+                            scaleX = 1f - (abs(rotation.value) / 92f) * .018f
                         }
                         .pointerInput(di, safePage, pageCount, widthPx) {
                             detectHorizontalDragGestures(
-                                onDragStart = { dragDistance = 0f },
+                                onDragStart = {
+                                    dragDistance = 0f
+                                    turning = true
+                                },
                                 onHorizontalDrag = { _, amount ->
                                     dragDistance += amount
                                     val allowed = (dragDistance < 0f && canGoForward) || (dragDistance > 0f && canGoBack)
                                     if (allowed) {
-                                        val degrees = (dragDistance / widthPx * -82f).coerceIn(-82f, 82f)
+                                        // One physical page turn is ~90 degrees. Keep a little resistance near the edge.
+                                        val normalized = (dragDistance / widthPx).coerceIn(-1f, 1f)
+                                        val degrees = (-normalized * 92f).coerceIn(-92f, 92f)
                                         scope.launch { rotation.snapTo(degrees) }
                                     } else {
                                         scope.launch { rotation.snapTo(0f) }
                                     }
                                 },
                                 onDragEnd = {
-                                    val forward = dragDistance < -widthPx * .20f && canGoForward
-                                    val backward = dragDistance > widthPx * .20f && canGoBack
+                                    val forward = dragDistance < -widthPx * .22f && canGoForward
+                                    val backward = dragDistance > widthPx * .22f && canGoBack
                                     dragDistance = 0f
+                                    turning = false
                                     scope.launch {
                                         when {
                                             forward -> {
-                                                rotation.animateTo(-92f, tween(380, easing = FastOutSlowInEasing))
+                                                rotation.animateTo(-92f, tween(330, easing = FastOutSlowInEasing))
                                                 setPage(safePage + 1)
                                                 rotation.snapTo(0f)
                                             }
                                             backward -> {
-                                                rotation.animateTo(92f, tween(380, easing = FastOutSlowInEasing))
+                                                rotation.animateTo(92f, tween(330, easing = FastOutSlowInEasing))
                                                 setPage(safePage - 1)
                                                 rotation.snapTo(0f)
                                             }
-                                            else -> rotation.animateTo(0f, tween(260, easing = FastOutSlowInEasing))
+                                            else -> rotation.animateTo(0f, tween(300, easing = FastOutSlowInEasing))
                                         }
                                     }
                                 }
                             )
                         }
-                )
+                ) {
+                    NotebookPage(d = d, page = safePage, modifier = Modifier.fillMaxSize())
+
+                    // Moving fold/shadow. It makes the sheet read as a physical object rather than a flat 3D card.
+                    if (turning || abs(rotation.value) > .5f) {
+                        val fold = (abs(rotation.value) / 92f).coerceIn(0f, 1f)
+                        Box(
+                            Modifier
+                                .fillMaxHeight()
+                                .width(90.dp)
+                                .align(if (rotation.value < 0f) Alignment.CenterStart else Alignment.CenterEnd)
+                                .background(
+                                    Brush.horizontalGradient(
+                                        if (rotation.value < 0f) listOf(Color.Black.copy(alpha = .28f * fold), Color.Transparent)
+                                        else listOf(Color.Transparent, Color.Black.copy(alpha = .28f * fold))
+                                    )
+                                )
+                        )
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = .025f + fold * .07f))
+                        )
+                    }
+                }
             }
         }
-        ReaderBottomBar(safePage, pageCount, setPage, complete)
+        ReaderBottomBar(page.coerceIn(0, (pageCount - 1).coerceAtLeast(0)), pageCount, setPage, complete)
     }
 }
 
