@@ -1,5 +1,6 @@
 package com.hpcai270
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,30 +46,15 @@ fun Cover(day: Int, start: () -> Unit, openIndex: () -> Unit, openBookmark: () -
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Navy, Color(0xFF081321), Navy2)))) {
         when {
             settingsOpen -> SettingsPanel(onClose = { settingsOpen = false })
-            searchOpen -> SearchPanel(days = days, onClose = { searchOpen = false }, openDay = { d, p -> searchOpen = false; openPage(d, p) })
-            tab == HomeTab.HOME -> HomeDashboard(
-                completed = day,
-                hasBookmark = hasBookmark,
-                start = start,
-                openIndex = { goIndex() },
-                openBookmark = openBookmark,
-                openSearch = { searchOpen = true },
-                openSettings = { settingsOpen = true },
-                openProgress = { tab = HomeTab.PROGRESS },
-                openProfile = { tab = HomeTab.PROFILE }
-            )
-            tab == HomeTab.INDEX -> BookIndex(
-                completed = day,
-                bookmarkedDay = null,
-                bookmarkedPage = null,
-                openPage = openPage,
-                close = { goHome() }
-            )
-            tab == HomeTab.PROGRESS -> ProgressPanel(day, days, onBack = { goHome() }, onIndex = { goIndex() })
-            tab == HomeTab.BOOKMARKS -> BookmarkPanel(hasBookmark, onBack = { goHome() }, openBookmark = openBookmark)
-            tab == HomeTab.PROFILE -> ProfilePanel(day, onBack = { goHome() }, onSettings = { settingsOpen = true })
+            searchOpen -> SearchPanel(days, { searchOpen = false }) { d, p -> searchOpen = false; openPage(d, p) }
+            tab == HomeTab.HOME -> HomeDashboard(day, hasBookmark, start, ::goIndex, openBookmark, { searchOpen = true }, { settingsOpen = true }, { tab = HomeTab.PROGRESS }, { tab = HomeTab.PROFILE })
+            tab == HomeTab.INDEX -> BookIndex(day, null, null, openPage) { goHome() }
+            tab == HomeTab.PROGRESS -> ProgressPanel(day, days, { goHome() }, { goIndex() })
+            tab == HomeTab.BOOKMARKS -> BookmarkPanel(hasBookmark, { goHome() }, openBookmark)
+            tab == HomeTab.PROFILE -> ProfilePanel(day, { goHome() }, { settingsOpen = true })
         }
 
+        // Fixed bottom navigation. It is anchored to the bottom edge and respects Android's gesture area.
         if (!settingsOpen && !searchOpen) {
             BottomNavigationBar(
                 selected = tab,
@@ -76,7 +62,11 @@ fun Cover(day: Int, start: () -> Unit, openIndex: () -> Unit, openBookmark: () -
                 onIndex = ::goIndex,
                 onProgress = { tab = HomeTab.PROGRESS },
                 onBookmarks = { tab = HomeTab.BOOKMARKS },
-                onProfile = { tab = HomeTab.PROFILE }
+                onProfile = { tab = HomeTab.PROFILE },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
             )
         }
     }
@@ -92,10 +82,14 @@ private fun HomeDashboard(completed: Int, hasBookmark: Boolean, start: () -> Uni
             }
             Spacer(Modifier.weight(1f))
             HeaderAction("⌕", openSearch)
-            HeaderAction("☆", openBookmark, enabled = hasBookmark)
+            HeaderAction("☆", openBookmark, hasBookmark)
             HeaderAction("⚙", openSettings)
         }
-        LazyColumn(Modifier.fillMaxSize().padding(bottom = 72.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+
+        LazyColumn(
+            Modifier.fillMaxSize().padding(bottom = 104.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
             item {
                 Spacer(Modifier.height(4.dp))
                 Text("KUNAL'S JOURNEY", color = Cyan, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
@@ -198,8 +192,12 @@ private fun RowScope.ModuleCard(icon: String, title: String, subtitle: String, a
 }
 
 @Composable
-private fun BottomNavigationBar(selected: HomeTab, onHome: () -> Unit, onIndex: () -> Unit, onProgress: () -> Unit, onBookmarks: () -> Unit, onProfile: () -> Unit) {
-    Row(Modifier.fillMaxWidth().height(67.dp).background(Color(0xF90A1523)).border(1.dp, Color(0xFF26384D)), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+private fun BottomNavigationBar(selected: HomeTab, onHome: () -> Unit, onIndex: () -> Unit, onProgress: () -> Unit, onBookmarks: () -> Unit, onProfile: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier.fillMaxWidth().height(82.dp).background(Color(0xF90A1523), RoundedCornerShape(20.dp)).border(1.dp, Color(0xFF26384D), RoundedCornerShape(20.dp)).padding(horizontal = 4.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         NavItem("⌂", "Home", selected == HomeTab.HOME, onHome)
         NavItem("▤", "Index", selected == HomeTab.INDEX, onIndex)
         NavItem("↗", "Progress", selected == HomeTab.PROGRESS, onProgress)
@@ -210,8 +208,9 @@ private fun BottomNavigationBar(selected: HomeTab, onHome: () -> Unit, onIndex: 
 
 @Composable
 private fun NavItem(icon: String, label: String, selected: Boolean, onClick: () -> Unit) {
-    Column(Modifier.width(70.dp).fillMaxHeight().clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+    Column(Modifier.width(64.dp).fillMaxHeight().clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Text(icon, color = if (selected) Purple else Color(0xFF91A0B3), fontSize = 23.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(2.dp))
         Text(label, color = if (selected) White else Color(0xFF91A0B3), fontSize = 9.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
     }
 }
@@ -243,10 +242,7 @@ private fun BookmarkPanel(hasBookmark: Boolean, onBack: () -> Unit, openBookmark
             Row(Modifier.fillMaxWidth().background(Color(0xFF111F31), RoundedCornerShape(16.dp)).padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("☆", color = Purple, fontSize = 32.sp)
                 Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("SAVED LESSON", color = White, fontWeight = FontWeight.Bold)
-                    Text("Jump back to your saved page", color = Muted, fontSize = 12.sp)
-                }
+                Column(Modifier.weight(1f)) { Text("SAVED LESSON", color = White, fontWeight = FontWeight.Bold); Text("Jump back to your saved page", color = Muted, fontSize = 12.sp) }
                 Button(onClick = openBookmark, shape = RoundedCornerShape(14.dp)) { Text("OPEN") }
             }
         } else {
@@ -264,44 +260,42 @@ private fun ProfilePanel(completed: Int, onBack: () -> Unit, onSettings: () -> U
         Box(Modifier.size(82.dp).background(Color(0xFF24344A), RoundedCornerShape(50.dp)).align(Alignment.CenterHorizontally), contentAlignment = Alignment.Center) { Text("KC", color = Cyan, fontSize = 25.sp, fontWeight = FontWeight.Black) }
         Spacer(Modifier.height(12.dp))
         Text("Kunal's Journey", color = White, fontSize = 25.sp, fontWeight = FontWeight.Black, modifier = Modifier.align(Alignment.CenterHorizontally))
-        Text("HPC + AI Field Manual", color = Muted, modifier = Modifier.align(Alignment.CenterHorizontally))
-        Spacer(Modifier.height(25.dp))
+        Text("HPC + AI Field Manual", color = Muted, fontSize = 13.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+        Spacer(Modifier.height(24.dp))
         StatRow("Progress", "$completed / 270 days")
-        StatRow("Current edition", "Foundation • Days 1–45")
-        StatRow("Goal", "HPC + AI Infrastructure")
-        Spacer(Modifier.height(20.dp))
-        OutlinedButton(onClick = onSettings, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(15.dp)) { Text("OPEN SETTINGS") }
+        StatRow("Published", "Days 1–45")
+        Spacer(Modifier.height(18.dp))
+        OutlinedButton(onClick = onSettings, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) { Text("SETTINGS") }
+    }
+}
+
+@Composable
+private fun PanelHeader(title: String, onBack: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        TextButton(onClick = onBack) { Text("‹  Back", color = White) }
+        Spacer(Modifier.weight(1f))
+        Text(title, color = White, fontSize = 19.sp, fontWeight = FontWeight.Black)
+        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.width(64.dp))
+    }
+}
+
+@Composable
+private fun StatRow(label: String, value: String) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 7.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, color = Muted, fontSize = 13.sp)
+        Text(value, color = White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
     }
 }
 
 @Composable
 private fun SettingsPanel(onClose: () -> Unit) {
-    var largeText by remember { mutableStateOf(false) }
-    var showHints by remember { mutableStateOf(true) }
-    LazyColumn(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
-        item { PanelHeader("SETTINGS", onClose) }
-        item { SettingSwitch("Larger lesson text", "Increase reading size", largeText) { largeText = it } }
-        item { SettingSwitch("Swipe hints", "Show navigation guidance", showHints) { showHints = it } }
-        item { SettingInfo("BOOK VERSION", "Foundation edition • Days 1–45 currently published") }
-        item { SettingInfo("READING MODE", "Handwritten field notes with technical diagrams, commands and real hardware references") }
-        item { SettingInfo("PAGE TURN", "Swipe horizontally across a lesson page to turn it") }
-    }
-}
-
-@Composable
-private fun SettingSwitch(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth().background(Color(0xFF111F31), RoundedCornerShape(16.dp)).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) { Text(title, color = White, fontWeight = FontWeight.Bold); Text(subtitle, color = Muted, fontSize = 11.sp) }
-        Switch(checked, onCheckedChange = onChange)
-    }
-}
-
-@Composable
-private fun SettingInfo(title: String, text: String) {
-    Column(Modifier.fillMaxWidth().background(Color(0xFF111F31), RoundedCornerShape(16.dp)).padding(14.dp)) {
-        Text(title, color = Cyan, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
-        Spacer(Modifier.height(4.dp))
-        Text(text, color = Muted, fontSize = 12.sp, lineHeight = 17.sp)
+    Column(Modifier.fillMaxSize().padding(18.dp)) {
+        PanelHeader("SETTINGS", onClose)
+        Spacer(Modifier.height(18.dp))
+        Text("Reader", color = White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(10.dp))
+        Text("Handwritten notes • notebook paper • real hardware references • swipe page turns", color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
     }
 }
 
@@ -309,19 +303,18 @@ private fun SettingInfo(title: String, text: String) {
 private fun SearchPanel(days: List<Day>, onClose: () -> Unit, openDay: (Int, Int) -> Unit) {
     var query by remember { mutableStateOf("") }
     val results = remember(query, days) {
-        if (query.isBlank()) days.take(8) else days.filter { d -> (d.title + " " + d.topic + " " + d.pages.joinToString(" ")).contains(query, ignoreCase = true) }.take(20)
+        if (query.isBlank()) emptyList() else days.filter { d -> (d.title + " " + d.topic + " " + d.pages.joinToString(" ")).contains(query, ignoreCase = true) }
     }
     Column(Modifier.fillMaxSize().padding(18.dp)) {
         PanelHeader("SEARCH", onClose)
-        Spacer(Modifier.height(12.dp))
-        BasicTextField(query, { query = it }, Modifier.fillMaxWidth().background(Color(0xFF111F31), RoundedCornerShape(15.dp)).border(1.dp, Color(0xFF2C4562), RoundedCornerShape(15.dp)).padding(15.dp), textStyle = TextStyle(color = White, fontSize = 16.sp), singleLine = true, decorationBox = { inner -> if (query.isEmpty()) Text("Search Linux, Lustre, RDMA, NVMe...", color = Muted); inner() })
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(14.dp))
+        BasicTextField(query, { query = it }, modifier = Modifier.fillMaxWidth().background(Color(0xFF111F31), RoundedCornerShape(14.dp)).border(1.dp, Color(0xFF29405D), RoundedCornerShape(14.dp)).padding(14.dp), textStyle = TextStyle(color = White, fontSize = 16.sp))
+        Spacer(Modifier.height(14.dp))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(results, key = { it.number }) { d ->
-                Row(Modifier.fillMaxWidth().clickable { openDay(d.number - 1, 0) }.background(Color(0xFF111F31), RoundedCornerShape(14.dp)).padding(13.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("${d.number}", color = Purple, fontWeight = FontWeight.Black, fontSize = 18.sp, modifier = Modifier.width(35.dp))
-                    Column(Modifier.weight(1f)) { Text(d.title, color = White, fontWeight = FontWeight.Bold); Text(d.topic, color = Muted, fontSize = 11.sp) }
-                    Text("›", color = Blue, fontSize = 23.sp)
+            items(results) { d ->
+                Row(Modifier.fillMaxWidth().clickable { openDay(d.number - 1, 0) }.background(Color(0xFF111F31), RoundedCornerShape(14.dp)).padding(13.dp)) {
+                    Column(Modifier.weight(1f)) { Text("DAY ${d.number}  •  ${d.title}", color = White, fontWeight = FontWeight.Bold); Text(d.topic, color = Muted, fontSize = 12.sp) }
+                    Text("›", color = Purple, fontSize = 24.sp)
                 }
             }
         }
@@ -329,50 +322,29 @@ private fun SearchPanel(days: List<Day>, onClose: () -> Unit, openDay: (Int, Int
 }
 
 @Composable
-private fun PanelHeader(title: String, onBack: () -> Unit) {
-    Row(Modifier.fillMaxWidth().height(45.dp), verticalAlignment = Alignment.CenterVertically) {
-        TextButton(onClick = onBack) { Text("‹  Back", color = White) }
-        Spacer(Modifier.weight(1f))
-        Text(title, color = White, fontWeight = FontWeight.Black, fontSize = 17.sp, letterSpacing = 1.5.sp)
-        Spacer(Modifier.weight(1f))
-        Spacer(Modifier.width(72.dp))
-    }
-}
-
-@Composable
-private fun StatRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
-        Text(value, color = White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-    }
-}
-
-@Composable
 private fun HpcHeroGraphic(modifier: Modifier = Modifier) {
-    Box(modifier) {
-        CanvasGraphic(modifier = Modifier.fillMaxSize())
-        Text("COMPUTE", Modifier.align(Alignment.TopStart).padding(start = 20.dp, top = 8.dp), color = Muted, fontSize = 9.sp, letterSpacing = 1.5.sp)
-        Text("STORAGE", Modifier.align(Alignment.TopEnd).padding(end = 20.dp, top = 8.dp), color = Muted, fontSize = 9.sp, letterSpacing = 1.5.sp)
-        Text("NETWORK", Modifier.align(Alignment.BottomCenter), color = Cyan, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-    }
-}
-
-@Composable
-private fun CanvasGraphic(modifier: Modifier) {
-    androidx.compose.foundation.Canvas(modifier) {
-        val center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height / 2f)
-        for (r in listOf(34f, 57f, 80f)) drawCircle(Color(0xFF284B73), r, center, style = androidx.compose.ui.graphics.drawscope.Stroke(1.4f))
-        repeat(12) { i ->
-            val a = i * (Math.PI * 2 / 12).toFloat()
-            val p = androidx.compose.ui.geometry.Offset(center.x + kotlin.math.cos(a) * 82f, center.y + kotlin.math.sin(a) * 82f)
-            drawCircle(if (i % 2 == 0) Blue else Purple, 4f, p)
+    Box(modifier, contentAlignment = Alignment.Center) {
+        Canvas(Modifier.fillMaxSize()) {
+            val cx = size.width / 2f
+            val cy = size.height / 2f
+            drawCircle(Color(0x331F6BFF), size.minDimension * .38f, androidx.compose.ui.geometry.Offset(cx, cy))
+            drawCircle(Color(0x5543B8FF), size.minDimension * .25f, androidx.compose.ui.geometry.Offset(cx, cy))
+            for (i in 0 until 12) {
+                val a = i * (Math.PI * 2 / 12)
+                drawCircle(Purple, 3.5f, androidx.compose.ui.geometry.Offset(cx + kotlin.math.cos(a).toFloat() * size.minDimension * .34f, cy + kotlin.math.sin(a).toFloat() * size.minDimension * .34f))
+            }
+            val left = cx - size.minDimension * .16f
+            val right = cx + size.minDimension * .16f
+            for (row in 0 until 5) {
+                val y = cy - size.minDimension * .12f + row * size.minDimension * .06f
+                drawLine(Blue, androidx.compose.ui.geometry.Offset(left, y), androidx.compose.ui.geometry.Offset(right, y), 2f)
+                for (col in 0 until 7) drawCircle(Cyan, 2f, androidx.compose.ui.geometry.Offset(left + 12f + col * 16f, y))
+            }
         }
-        val left = center.x - 61f
-        val top = center.y - 39f
-        repeat(4) { row ->
-            val y = top + row * 22f
-            drawRoundRect(Color(0xFF1B2A3D), androidx.compose.ui.geometry.Offset(left, y), androidx.compose.ui.geometry.Size(122f, 16f), androidx.compose.ui.geometry.CornerRadius(4f, 4f))
-            repeat(7) { col -> drawCircle(Cyan, 2f, androidx.compose.ui.geometry.Offset(left + 12f + col * 16f, y + 8f)) }
+        Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("COMPUTE", color = Muted, fontSize = 10.sp, letterSpacing = 1.5.sp)
+            Text("STORAGE", color = Muted, fontSize = 10.sp, letterSpacing = 1.5.sp)
         }
+        Text("NETWORK", color = Cyan, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp))
     }
 }
