@@ -9,8 +9,7 @@ data class Day(
     val task: String,
     val pages: List<String> = listOf(page1, page2)
 ) {
-    // Expanded lessons can contain any number of lesson pages. The final page
-    // is treated as the day's checkpoint/task by the reader.
+    // Expanded lessons may provide any number of lesson pages.
     constructor(
         number: Int,
         title: String,
@@ -24,5 +23,29 @@ data class Day(
         page2 = lessonPages.getOrElse(1) { "" },
         task = lessonPages.lastOrNull() ?: "",
         pages = lessonPages.toList()
+    )
+
+    // Compatibility constructor for expanded lessons that explicitly provide
+    // the pages named argument after seven positional page strings.
+    constructor(
+        number: Int,
+        title: String,
+        topic: String,
+        page1: String,
+        page2: String,
+        page3: String,
+        page4: String,
+        page5: String,
+        page6: String,
+        page7: String,
+        pages: List<String>
+    ) : this(
+        number = number,
+        title = title,
+        topic = topic,
+        page1 = page1,
+        page2 = page2,
+        task = pages.lastOrNull() ?: page7,
+        pages = pages
     )
 }
