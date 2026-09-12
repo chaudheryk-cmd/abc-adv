@@ -1,13 +1,13 @@
 package com.hpcai270
 
-private const val PUBLISHED_DAYS = 100
+private const val PUBLISHED_DAYS = 270
 
 /**
- * Published study book: Days 1-100.
+ * Complete 270-day HPC + AI field manual.
  *
- * There is deliberately NO page-count limit. Source material is kept intact
- * and the deep-dive material is appended instead of compressing lessons into
- * a fixed page count. Difficult topics can occupy many notebook pages.
+ * Lessons are variable-length. No artificial page limit is imposed: every day
+ * can contain as many notebook pages as the topic requires, plus deep-dive
+ * material for the earlier foundation days.
  */
 fun hpcBookDays(): List<Day> {
     val source = listOf(
@@ -22,7 +22,17 @@ fun hpcBookDays(): List<Day> {
         *hpcDaysPart8.toTypedArray(),
         *hpcDaysPart9.toTypedArray(),
         *hpcDaysPart10.toTypedArray(),
-        *hpcDaysPart11.toTypedArray()
+        *hpcDaysPart11.toTypedArray(),
+        *hpcDaysPart12.toTypedArray(),
+        *hpcDaysPart13.toTypedArray(),
+        *hpcDaysPart14.toTypedArray(),
+        *hpcDaysPart15.toTypedArray(),
+        *hpcDaysPart16.toTypedArray(),
+        *hpcDaysPart17.toTypedArray(),
+        *hpcDaysPart18.toTypedArray(),
+        *hpcDaysPart19.toTypedArray(),
+        *hpcDaysPart20.toTypedArray(),
+        *hpcDaysPart21.toTypedArray()
     ).distinctBy { it.number }
         .sortedBy { it.number }
         .take(PUBLISHED_DAYS)
