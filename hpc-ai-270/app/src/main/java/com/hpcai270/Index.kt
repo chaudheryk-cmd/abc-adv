@@ -37,9 +37,9 @@ fun BookIndex(
             Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(close) { Text("‹ Book") }
+            TextButton(onClick = close) { Text("‹ Home") }
             Spacer(Modifier.weight(1f))
-            Text("INDEX", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Ink)
+            Text("LEARNING INDEX", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Ink)
             Spacer(Modifier.weight(1f))
             Text("$completed / 270", fontFamily = FontFamily.Cursive, color = Muted)
         }
@@ -50,14 +50,14 @@ fun BookIndex(
             shape = RoundedCornerShape(18.dp)
         ) {
             Column(Modifier.padding(16.dp)) {
-                Text("HPC + AI FIELD NOTES", fontFamily = FontFamily.Cursive, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Plum)
-                Text("Days 1–45 • foundation edition", fontWeight = FontWeight.SemiBold, color = Ink)
+                Text("HPC + AI FIELD MANUAL", fontFamily = FontFamily.Cursive, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Plum)
+                Text("270-day professional learning path", fontWeight = FontWeight.SemiBold, color = Ink)
                 Spacer(Modifier.height(4.dp))
-                Text("Tap a day to reveal its pages. Tap a page to jump there instantly.", fontSize = 13.sp, color = Muted)
+                Text("Open any day, inspect every page, or jump directly to a lesson.", fontSize = 13.sp, color = Muted)
                 if (bookmarkedDay != null && bookmarkedPage != null) {
                     Spacer(Modifier.height(10.dp))
                     OutlinedButton(onClick = { openPage(bookmarkedDay, bookmarkedPage) }) {
-                        Text("🔖  Continue from bookmark — Day ${bookmarkedDay + 1}, page ${bookmarkedPage + 1}")
+                        Text("🔖  Open bookmark — Day ${bookmarkedDay + 1}, page ${bookmarkedPage + 1}")
                     }
                 }
             }
@@ -80,10 +80,9 @@ fun BookIndex(
                             Modifier.fillMaxWidth().padding(13.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                Modifier.size(42.dp).background(Rule, RoundedCornerShape(12.dp)),
-                                contentAlignment = Alignment.Center
-                            ) { Text("${day.number}", fontWeight = FontWeight.Black, color = Plum) }
+                            Box(Modifier.size(42.dp).background(Rule, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+                                Text("${day.number}", fontWeight = FontWeight.Black, color = Plum)
+                            }
                             Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(day.title, fontWeight = FontWeight.Bold, color = Ink, maxLines = 1)
@@ -97,14 +96,11 @@ fun BookIndex(
                             HorizontalDivider(color = Rule)
                             Column(Modifier.padding(10.dp)) {
                                 day.pages.forEachIndexed { pageIndex, text ->
-                                    val preview = text.replace("\n", " ").trim().take(72)
-                                    TextButton(
-                                        onClick = { openPage(dayIndex, pageIndex) },
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
+                                    val preview = text.replace("\n", " ").trim().take(88)
+                                    TextButton(onClick = { openPage(dayIndex, pageIndex) }, modifier = Modifier.fillMaxWidth()) {
                                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                             Text("${pageIndex + 1}", fontWeight = FontWeight.Bold, color = Plum, modifier = Modifier.width(30.dp))
-                                            Text(preview.ifBlank { "Lesson page" }, color = Ink, maxLines = 1)
+                                            Text(preview.ifBlank { "Lesson page — content check required" }, color = Ink, maxLines = 1)
                                             if (bookmarkedDay == dayIndex && bookmarkedPage == pageIndex) Text("  🔖")
                                         }
                                     }
