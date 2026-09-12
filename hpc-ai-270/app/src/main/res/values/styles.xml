@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.HpcAi270" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">cursive</item>
+        <item name="android:colorAccent">#5C4B9B</item>
+        <item name="android:navigationBarColor">#F7F0E3</item>
+        <item name="android:statusBarColor">#F7F0E3</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
