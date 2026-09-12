@@ -22,10 +22,6 @@ private val AppChrome = Color(0xFF101A27)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Target SDK 35 uses edge-to-edge. Draw the dark chrome behind the
-        // status/navigation bars, then inset the actual book content into the
-        // safe drawing area. This prevents white status-bar background + white
-        // icons from colliding at the top of the screen.
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         WindowCompat.getInsetsController(window, window.decorView).apply {
@@ -47,6 +43,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun HpcBookPremium(c: Context) {
     val prefs = remember { c.getSharedPreferences("hpc_book", Context.MODE_PRIVATE) }
+    val book = remember { hpcBookDays() }
     var completed by remember { mutableIntStateOf(prefs.getInt("completed", 0).coerceIn(0, PUBLISHED_DAYS)) }
     var selectedDay by remember { mutableIntStateOf(completed.coerceIn(0, PUBLISHED_DAYS - 1)) }
     var selectedPage by remember { mutableIntStateOf(0) }
@@ -62,9 +59,9 @@ private fun HpcBookPremium(c: Context) {
     }
 
     fun openAt(day: Int, page: Int) {
-        if (day !in 0 until PUBLISHED_DAYS) return
+        if (day !in book.indices) return
         selectedDay = day
-        selectedPage = page.coerceIn(0, 1)
+        selectedPage = page.coerceIn(0, book[day].pages.lastIndex.coerceAtLeast(0))
         open = true
         showIndex = false
     }
@@ -91,7 +88,7 @@ private fun HpcBookPremium(c: Context) {
         else -> Reader(
             di = selectedDay,
             page = selectedPage,
-            setPage = { selectedPage = it.coerceIn(0, 1) },
+            setPage = { selectedPage = it.coerceIn(0, book[selectedDay].pages.lastIndex.coerceAtLeast(0)) },
             close = { open = false },
             complete = {
                 if (selectedDay < PUBLISHED_DAYS) {
