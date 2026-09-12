@@ -14,11 +14,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private const val TOTAL_DAYS = 50
+private const val TOTAL_DAYS = 270
 
 @Composable
 fun Reader(di:Int,page:Int,setPage:(Int)->Unit,close:()->Unit,complete:()->Unit){
-    val all=listOf(day1Expanded)+(hpcDaysPart1.drop(1))+hpcDaysPart2+hpcDaysPart3+hpcDaysPart4
+    val all=listOf(day1Expanded)+expandedDays2to5+hpcDaysPart2+hpcDaysPart3+hpcDaysPart4
     val d=all.getOrNull(di)
     val pageCount=d?.pages?.size ?: 2
     val safePage=page.coerceIn(0,pageCount-1)
@@ -31,14 +31,14 @@ fun Reader(di:Int,page:Int,setPage:(Int)->Unit,close:()->Unit,complete:()->Unit)
             Text("${((di+1).toFloat()/TOTAL_DAYS*100).toInt()}%")
         }
         Box(Modifier.fillMaxWidth().weight(1f),Alignment.Center){
-            if(d==null) Text("📖\n\nDay ${di+1}\n\nThis chapter is not released yet.",fontFamily=FontFamily.Cursive,fontSize=24.sp,textAlign=TextAlign.Center)
+            if(d==null) Text("📖\n\nDay ${di+1}\n\nThis chapter is being prepared.",fontFamily=FontFamily.Cursive,fontSize=24.sp,textAlign=TextAlign.Center)
             else Page(d,safePage)
         }
         Row(Modifier.fillMaxWidth().padding(7.dp),Arrangement.SpaceBetween,Alignment.CenterVertically){
             Button({setPage((safePage-1).coerceAtLeast(0))},enabled=safePage>0){Text("← Previous")}
             Text("${safePage+1} / $pageCount",fontFamily=FontFamily.Cursive,fontSize=18.sp)
             if(safePage<pageCount-1) Button({setPage(safePage+1)}){Text("Turn page →")}
-            else Button(complete){Text(if(di==TOTAL_DAYS-1)"✓ Finish 50 days" else "✓ Complete day")}
+            else Button(complete){Text(if(di==TOTAL_DAYS-1)"✓ Finish 270 days" else "✓ Complete day")}
         }
     }
 }
