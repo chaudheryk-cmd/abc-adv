@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:theme="@style/Theme.HpcAi270"
         android:label="Kunal's Journey to HPC + AI"
