@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -43,7 +42,7 @@ fun Reader(
     bookmarked: Boolean,
     toggleBookmark: () -> Unit
 ) {
-    val all = remember { hpcBookDays() }
+    val all = remember { hpcBookDays().take(45) }
     val d = all.getOrNull(di)
     val pageCount = d?.pages?.size ?: 1
     val safePage = page.coerceIn(0, pageCount - 1)
@@ -141,7 +140,7 @@ fun Page(d: Day, page: Int) {
 
 @Composable
 private fun PremiumContent(raw: String, compact: Boolean = false) {
-    val lines = raw.replace("\\r", "").split("\\n")
+    val lines = raw.replace("\r", "").split("\n")
     Column(verticalArrangement = Arrangement.spacedBy(if (compact) 5.dp else 7.dp)) {
         lines.forEach { original ->
             val line = original.trim()
@@ -169,7 +168,4 @@ private fun isHeading(s: String): Boolean {
 
 private fun cleanBullet(s: String) = s.removePrefix("•").removePrefix("-").removePrefix("→").trim()
 
-private fun inlineBold(text: String) = buildAnnotatedString {
-    val parts = text.split("**")
-    parts.forEachIndexed { i, part -> if (i % 2 == 1) append(part, SpanStyle(fontWeight = FontWeight.Bold)) else append(part) }
-}
+private fun inlineBold(text: String) = buildAnnotatedString { append(text.replace("**", "")) }
