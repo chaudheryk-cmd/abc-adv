@@ -41,48 +41,60 @@ private val Leather = Color(0xFF101A27)
 
 @Composable
 fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, complete: () -> Unit, openIndex: () -> Unit, bookmarked: Boolean, toggleBookmark: () -> Unit) {
-    val all = remember { hpcBookDays().take(45) }
+    val all = remember { hpcBookDays() }
     val d = all.getOrNull(di)
-    val pageCount = d?.pages?.size ?: 2
-    val safePage = page.coerceIn(0, pageCount - 1)
+    val pageCount = d?.pages?.size ?: 1
+    val safePage = page.coerceIn(0, (pageCount - 1).coerceAtLeast(0))
     var previousPage by remember(di) { mutableIntStateOf(safePage) }
     var dragAmount by remember { mutableFloatStateOf(0f) }
     val forward = safePage >= previousPage
     LaunchedEffect(safePage) { previousPage = safePage }
+
     Column(Modifier.fillMaxSize().background(Leather)) {
-        ReaderTopBar(di, safePage, bookmarked, close, openIndex, toggleBookmark)
-        LinearProgressIndicator(progress = { ((di + 1).toFloat() / 45f).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().height(3.dp), color = Color(0xFF9569D9), trackColor = Color(0xFF2D3948))
-        Box(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp, vertical = 10.dp).pointerInput(di, safePage) {
-            detectHorizontalDragGestures(
-                onDragStart = { dragAmount = 0f },
-                onHorizontalDrag = { _, amount -> dragAmount += amount },
-                onDragEnd = {
-                    if (abs(dragAmount) > 90f) {
-                        if (dragAmount < 0 && safePage < pageCount - 1) setPage(safePage + 1)
-                        if (dragAmount > 0 && safePage > 0) setPage(safePage - 1)
+        ReaderTopBar(di, safePage, pageCount, bookmarked, close, openIndex, toggleBookmark)
+        LinearProgressIndicator(
+            progress = { ((di + 1).toFloat() / 45f).coerceIn(0f, 1f) },
+            modifier = Modifier.fillMaxWidth().height(3.dp),
+            color = Color(0xFF9569D9),
+            trackColor = Color(0xFF2D3948)
+        )
+        Box(
+            Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp, vertical = 10.dp).pointerInput(di, safePage) {
+                detectHorizontalDragGestures(
+                    onDragStart = { dragAmount = 0f },
+                    onHorizontalDrag = { _, amount -> dragAmount += amount },
+                    onDragEnd = {
+                        if (abs(dragAmount) > 90f) {
+                            if (dragAmount < 0 && safePage < pageCount - 1) setPage(safePage + 1)
+                            if (dragAmount > 0 && safePage > 0) setPage(safePage - 1)
+                        }
+                        dragAmount = 0f
                     }
-                    dragAmount = 0f
-                }
-            )
-        }, Alignment.Center) {
-            if (d == null) Text("This chapter is being prepared.", color = Color.White, fontFamily = Handwritten, fontSize = 22.sp)
-            else AnimatedContent(targetState = safePage, transitionSpec = {
-                if (forward) (slideInHorizontally { it } + fadeIn()).togetherWith(slideOutHorizontally { -it / 3 } + fadeOut())
-                else (slideInHorizontally { -it } + fadeIn()).togetherWith(slideOutHorizontally { it / 3 } + fadeOut())
-            }, label = "physicalPageTurn") { animatedPage -> NotebookPage(d, animatedPage) }
+                )
+            },
+            Alignment.Center
+        ) {
+            if (d == null) {
+                Text("This chapter is being prepared.", color = Color.White, fontFamily = Handwritten, fontSize = 22.sp)
+            } else {
+                AnimatedContent(targetState = safePage, transitionSpec = {
+                    if (forward) (slideInHorizontally { it } + fadeIn()).togetherWith(slideOutHorizontally { -it / 3 } + fadeOut())
+                    else (slideInHorizontally { -it } + fadeIn()).togetherWith(slideOutHorizontally { it / 3 } + fadeOut())
+                }, label = "physicalPageTurn") { animatedPage -> NotebookPage(d, animatedPage, pageCount) }
+            }
         }
         ReaderBottomBar(safePage, pageCount, setPage, complete)
     }
 }
 
 @Composable
-private fun ReaderTopBar(day: Int, page: Int, bookmarked: Boolean, close: () -> Unit, openIndex: () -> Unit, toggleBookmark: () -> Unit) {
+private fun ReaderTopBar(day: Int, page: Int, pageCount: Int, bookmarked: Boolean, close: () -> Unit, openIndex: () -> Unit, toggleBookmark: () -> Unit) {
     Row(Modifier.fillMaxWidth().height(60.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         TextButton(onClick = close) { Text("‹  Close", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
         Spacer(Modifier.weight(1f))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("KUNAL'S JOURNEY", color = Color.White, fontWeight = FontWeight.Black, fontSize = 12.sp, letterSpacing = 1.2.sp)
-            Text("HPC + AI  •  DAY ${day + 1}  •  ${page + 1}/2", color = Color(0xFFC8D2DF), fontSize = 11.sp)
+            Text("HPC + AI  •  DAY ${day + 1}  •  ${page + 1}/$pageCount", color = Color(0xFFC8D2DF), fontSize = 11.sp)
         }
         Spacer(Modifier.weight(1f))
         TextButton(onClick = openIndex) { Text("INDEX", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp) }
@@ -94,19 +106,19 @@ private fun ReaderTopBar(day: Int, page: Int, bookmarked: Boolean, close: () -> 
 private fun ReaderBottomBar(page: Int, pageCount: Int, setPage: (Int) -> Unit, complete: () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 7.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         OutlinedButton(onClick = { setPage((page - 1).coerceAtLeast(0)) }, enabled = page > 0, shape = RoundedCornerShape(18.dp)) { Text("← Previous", fontFamily = Handwritten, fontSize = 16.sp) }
-        Text("SWIPE  ←  →", color = Color(0xFFD2D9E2), fontFamily = Handwritten, fontSize = 17.sp)
+        Text("PAGE ${page + 1} / $pageCount  •  SWIPE", color = Color(0xFFD2D9E2), fontFamily = Handwritten, fontSize = 16.sp)
         if (page < pageCount - 1) Button(onClick = { setPage(page + 1) }, shape = RoundedCornerShape(18.dp)) { Text("Next →", fontFamily = Handwritten, fontSize = 17.sp) }
         else Button(onClick = complete, shape = RoundedCornerShape(18.dp)) { Text("✓ Complete day", fontFamily = Handwritten, fontSize = 17.sp) }
     }
 }
 
 @Composable
-private fun NotebookPage(d: Day, page: Int) {
+private fun NotebookPage(d: Day, page: Int, pageCount: Int) {
     Card(Modifier.fillMaxWidth().fillMaxHeight(.99f).shadow(18.dp, RoundedCornerShape(8.dp)), colors = CardDefaults.cardColors(containerColor = Paper), shape = RoundedCornerShape(8.dp)) {
         Box(Modifier.fillMaxSize()) {
             RuledPaper()
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 38.dp, end = 22.dp, top = 17.dp, bottom = 30.dp)) {
-                BookPageHeader(d, page)
+                BookPageHeader(d, page, pageCount)
                 Spacer(Modifier.height(8.dp))
                 if (page == 0) {
                     RealHardwareReference(d.number)
@@ -115,7 +127,13 @@ private fun NotebookPage(d: Day, page: Int) {
                 }
                 PremiumContent(d.pages[page])
                 Spacer(Modifier.height(18.dp))
-                Text(if (page == 0) "↳ turn the page — the second page goes deeper" else "✎ field note: explain this topic without looking at the page", fontFamily = Handwritten, fontSize = 16.sp, color = Muted)
+                Text(
+                    if (page == pageCount - 1) "✎ END OF DAY ${d.number} — explain the topic from memory before moving on"
+                    else "↳ keep reading — this lesson is intentionally deeper than a fixed page count",
+                    fontFamily = Handwritten,
+                    fontSize = 16.sp,
+                    color = Muted
+                )
             }
             Canvas(Modifier.align(Alignment.BottomEnd).size(30.dp)) { drawLine(Color(0xFFC8BCA4), Offset(2f, 28f), Offset(28f, 2f), 2f) }
         }
@@ -123,7 +141,7 @@ private fun NotebookPage(d: Day, page: Int) {
 }
 
 @Composable
-private fun BookPageHeader(d: Day, page: Int) {
+private fun BookPageHeader(d: Day, page: Int, pageCount: Int) {
     Row(verticalAlignment = Alignment.Top) {
         Box(Modifier.background(listOf(Yellow, Pink, Sky, Green, Orange)[(d.number - 1).mod(5)], RoundedCornerShape(10.dp)).padding(horizontal = 11.dp, vertical = 7.dp)) { Text("DAY ${d.number}", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink) }
         Spacer(Modifier.width(10.dp))
@@ -131,7 +149,7 @@ private fun BookPageHeader(d: Day, page: Int) {
             Text(d.title, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 29.sp, maxLines = 2, color = BlueInk)
             Text(d.topic, fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 20.sp, color = Plum, maxLines = 2)
         }
-        Text("${page + 1}/2", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Muted)
+        Text("${page + 1}/$pageCount", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Muted)
     }
 }
 
