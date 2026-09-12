@@ -38,18 +38,17 @@ private fun hardwareFor(day: Int): HardwareReference? = when {
 fun RealHardwareReference(day: Int) {
     val item = hardwareFor(day) ?: return
     Card(colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFFF0E8D7)), shape = RoundedCornerShape(14.dp)) {
-        Column(Modifier.fillMaxWidth().padding(9.dp)) {
+        Column(Modifier.fillMaxWidth().padding(9.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
             Text("REAL HARDWARE / FIELD REFERENCE", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = androidx.compose.ui.graphics.Color(0xFF6B3F8F))
-            Spacer(Modifier.height(5.dp))
             AsyncImage(
                 model = item.imageUrl,
                 contentDescription = item.name,
                 modifier = Modifier.fillMaxWidth().height(150.dp),
                 contentScale = ContentScale.Crop
             )
-            Spacer(Modifier.height(4.dp))
             Text(item.name, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = androidx.compose.ui.graphics.Color(0xFF173F8A))
             Text("Source: ${item.source}", fontFamily = Handwritten, fontSize = 13.sp, color = androidx.compose.ui.graphics.Color(0xFF716A73))
+            AdvancedFlowDiagram(day)
         }
     }
 }
