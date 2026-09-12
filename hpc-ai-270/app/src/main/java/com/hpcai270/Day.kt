@@ -9,25 +9,20 @@ data class Day(
     val task: String,
     val pages: List<String> = listOf(page1, page2)
 ) {
-    // Expanded lessons may provide seven page strings; the final page is the checkpoint/task.
+    // Expanded lessons can contain any number of lesson pages. The final page
+    // is treated as the day's checkpoint/task by the reader.
     constructor(
         number: Int,
         title: String,
         topic: String,
-        page1: String,
-        page2: String,
-        page3: String,
-        page4: String,
-        page5: String,
-        page6: String,
-        page7: String
+        vararg lessonPages: String
     ) : this(
-        number,
-        title,
-        topic,
-        page1,
-        page2,
-        page7,
-        listOf(page1, page2, page3, page4, page5, page6, page7)
+        number = number,
+        title = title,
+        topic = topic,
+        page1 = lessonPages.getOrElse(0) { "" },
+        page2 = lessonPages.getOrElse(1) { "" },
+        task = lessonPages.lastOrNull() ?: "",
+        pages = lessonPages.toList()
     )
 }
