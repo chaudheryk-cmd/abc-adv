@@ -82,8 +82,9 @@ private fun HpcBookPremium(c: Context) {
                 open = true
             },
             openIndex = { showIndex = true },
-            openBookmark = { openAt(bookmarkDay, bookmarkPage) },
-            hasBookmark = bookmarkDay >= 0 && bookmarkPage >= 0
+            openBookmark = { if (bookmarkDay >= 0 && bookmarkPage >= 0) openAt(bookmarkDay, bookmarkPage) },
+            hasBookmark = bookmarkDay >= 0 && bookmarkPage >= 0,
+            openPage = ::openAt
         )
         else -> Reader(
             di = selectedDay,
