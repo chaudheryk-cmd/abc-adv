@@ -5,31 +5,39 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.core.view.WindowCompat
 
-private const val TOTAL_DAYS = 270
 private const val PUBLISHED_DAYS = 45
+private val AppChrome = Color(0xFF101A27)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Android 15/target 35 enforces edge-to-edge. We deliberately keep the
-        // system bars visible, then apply safeDrawingPadding so the book never
-        // sits underneath notifications, camera cutouts, or the gesture bar.
+        // Target SDK 35 uses edge-to-edge. Draw the dark chrome behind the
+        // status/navigation bars, then inset the actual book content into the
+        // safe drawing area. This prevents white status-bar background + white
+        // icons from colliding at the top of the screen.
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
         setContent {
             MaterialTheme {
-                Surface(
-                    Modifier.fillMaxSize().safeDrawingPadding(),
-                    color = Color(0xFFF3E9D7)
-                ) {
-                    HpcBookPremium(this@MainActivity)
+                Box(Modifier.fillMaxSize().background(AppChrome)) {
+                    Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+                        HpcBookPremium(this@MainActivity)
+                    }
                 }
             }
         }
