@@ -8,6 +8,9 @@ private const val PUBLISHED_DAYS = 270
  * Lessons are variable-length. No artificial page limit is imposed: every day
  * can contain as many notebook pages as the topic requires, plus deep-dive
  * material for the earlier foundation days.
+ *
+ * A senior practical lab is appended to every day so the program measures
+ * applied reasoning, troubleshooting and architecture—not just reading.
  */
 fun hpcBookDays(): List<Day> {
     val source = listOf(
@@ -39,7 +42,11 @@ fun hpcBookDays(): List<Day> {
 
     return source.map { day ->
         val deepDive = depthNote(day.number)
-        val pages = if (deepDive.isBlank()) day.pages else day.pages + deepDive
+        val pages = buildList {
+            addAll(day.pages)
+            if (deepDive.isNotBlank()) add(deepDive)
+            add(practicalLab(day))
+        }
 
         Day(
             number = day.number,
@@ -47,7 +54,7 @@ fun hpcBookDays(): List<Day> {
             topic = day.topic,
             page1 = pages.firstOrNull() ?: "",
             page2 = pages.getOrElse(1) { "" },
-            task = day.task,
+            task = practicalLab(day),
             pages = pages
         )
     }
