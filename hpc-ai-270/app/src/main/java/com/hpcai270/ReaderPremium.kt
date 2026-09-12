@@ -52,8 +52,9 @@ fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, comple
 
     Column(Modifier.fillMaxSize().background(Leather)) {
         ReaderTopBar(di, page.coerceIn(0, (pageCount - 1).coerceAtLeast(0)), pageCount, bookmarked, close, openIndex, toggleBookmark)
+        val overallProgress = (((di + 1f) + (page.coerceIn(0, pageCount - 1).toFloat() / pageCount.coerceAtLeast(1))) / 270f).coerceIn(0f, 1f)
         LinearProgressIndicator(
-            progress = { ((di + page.coerceIn(0, (pageCount - 1).coerceAtLeast(0)).toFloat() / pageCount.coerceAtLeast(1)) / 100f).coerceIn(0f, 1f) },
+            progress = { overallProgress },
             modifier = Modifier.fillMaxWidth().height(3.dp), color = Color(0xFF9569D9), trackColor = Color(0xFF2D3948)
         )
         BoxWithConstraints(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
@@ -67,12 +68,14 @@ fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, comple
                 else -> safePage
             }
             if (d == null) {
-                Text("This chapter is being prepared.", color = Color.White, fontFamily = Handwritten, fontSize = 22.sp)
+                Text("This lesson could not be loaded. Return to the index and reopen the day.", color = Color.White, fontFamily = Handwritten, fontSize = 18.sp)
             } else {
                 if (targetPage != safePage) {
                     NotebookPage(d, targetPage, Modifier.fillMaxSize().graphicsLayer {
                         val reveal = (abs(dragDistance) / widthPx).coerceIn(0f, 1f)
-                        scaleX = .985f + reveal * .015f; scaleY = .985f + reveal * .015f; alpha = .82f + reveal * .18f
+                        scaleX = .985f + reveal * .015f
+                        scaleY = .985f + reveal * .015f
+                        alpha = .82f + reveal * .18f
                     })
                 }
                 Box(Modifier.fillMaxSize().graphicsLayer {
@@ -93,7 +96,8 @@ fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, comple
                         onDragEnd = {
                             val forward = dragDistance < -widthPx * .22f && canGoForward
                             val backward = dragDistance > widthPx * .22f && canGoBack
-                            dragDistance = 0f; turning = false
+                            dragDistance = 0f
+                            turning = false
                             scope.launch {
                                 when {
                                     forward -> { rotation.animateTo(-92f, tween(330, easing = FastOutSlowInEasing)); setPage(safePage + 1); rotation.snapTo(0f) }
@@ -136,22 +140,14 @@ private fun ReaderTopBar(day: Int, page: Int, pageCount: Int, bookmarked: Boolea
 
 @Composable
 private fun ReaderBottomBar(page: Int, pageCount: Int, setPage: (Int) -> Unit, complete: () -> Unit) {
-    // Three equal zones keep the controls visually symmetric on every phone width.
     Row(Modifier.fillMaxWidth().padding(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.weight(1f).padding(end = 6.dp), contentAlignment = Alignment.Center) {
-            OutlinedButton(onClick = { setPage((page - 1).coerceAtLeast(0)) }, enabled = page > 0, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) {
-                Text("← Previous", fontFamily = Handwritten, fontSize = 16.sp)
-            }
+            OutlinedButton(onClick = { setPage((page - 1).coerceAtLeast(0)) }, enabled = page > 0, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) { Text("← Previous", fontFamily = Handwritten, fontSize = 16.sp) }
         }
-        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-            Text("PAGE ${page + 1} / $pageCount", color = Color(0xFFD2D9E2), fontFamily = Handwritten, fontSize = 15.sp, maxLines = 1)
-        }
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Text("PAGE ${page + 1} / $pageCount", color = Color(0xFFD2D9E2), fontFamily = Handwritten, fontSize = 15.sp, maxLines = 1) }
         Box(Modifier.weight(1f).padding(start = 6.dp), contentAlignment = Alignment.Center) {
-            if (page < pageCount - 1) {
-                Button(onClick = { setPage(page + 1) }, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) { Text("Next  →", fontFamily = Handwritten, fontSize = 17.sp) }
-            } else {
-                Button(onClick = complete, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) { Text("✓  Complete Day", fontFamily = Handwritten, fontSize = 16.sp, maxLines = 1) }
-            }
+            if (page < pageCount - 1) Button(onClick = { setPage(page + 1) }, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) { Text("Next  →", fontFamily = Handwritten, fontSize = 17.sp) }
+            else Button(onClick = complete, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) { Text("✓  Complete Day", fontFamily = Handwritten, fontSize = 16.sp, maxLines = 1) }
         }
     }
 }
@@ -169,7 +165,14 @@ private fun NotebookPage(d: Day, page: Int, modifier: Modifier = Modifier) {
                     LessonVisual(d.number)
                     Spacer(Modifier.height(12.dp))
                 }
-                PremiumContent(d.pages[page])
+                val content = d.pages.getOrNull(page).orEmpty().trim()
+                if (content.isBlank()) {
+                    Box(Modifier.fillMaxWidth().background(Yellow, RoundedCornerShape(10.dp)).padding(14.dp)) {
+                        Text("This page is empty in the lesson source. Use the Index to reopen the day after the next content revision.", fontFamily = Handwritten, fontSize = 17.sp, lineHeight = 24.sp, color = Ink)
+                    }
+                } else {
+                    PremiumContent(content)
+                }
                 Spacer(Modifier.height(18.dp))
                 Text(if (page == d.pages.lastIndex) "✎ END OF DAY ${d.number} — explain the topic from memory before moving on" else "↳ keep reading — this lesson is intentionally deeper than a fixed page count", fontFamily = Handwritten, fontSize = 16.sp, color = Muted)
             }
