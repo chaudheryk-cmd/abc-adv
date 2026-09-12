@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
@@ -39,16 +40,7 @@ private val Rule = Color(0xFFDCE6EF)
 private val Leather = Color(0xFF101A27)
 
 @Composable
-fun Reader(
-    di: Int,
-    page: Int,
-    setPage: (Int) -> Unit,
-    close: () -> Unit,
-    complete: () -> Unit,
-    openIndex: () -> Unit,
-    bookmarked: Boolean,
-    toggleBookmark: () -> Unit
-) {
+fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, complete: () -> Unit, openIndex: () -> Unit, bookmarked: Boolean, toggleBookmark: () -> Unit) {
     val all = remember { hpcBookDays().take(45) }
     val d = all.getOrNull(di)
     val pageCount = d?.pages?.size ?: 2
@@ -57,46 +49,27 @@ fun Reader(
     var dragAmount by remember { mutableFloatStateOf(0f) }
     val forward = safePage >= previousPage
     LaunchedEffect(safePage) { previousPage = safePage }
-
     Column(Modifier.fillMaxSize().background(Leather)) {
         ReaderTopBar(di, safePage, bookmarked, close, openIndex, toggleBookmark)
-        LinearProgressIndicator(
-            progress = { ((di + 1).toFloat() / 45f).coerceIn(0f, 1f) },
-            modifier = Modifier.fillMaxWidth().height(3.dp),
-            color = Color(0xFF9569D9),
-            trackColor = Color(0xFF2D3948)
-        )
-        Box(
-            Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp, vertical = 10.dp).pointerInput(di, safePage) {
-                detectHorizontalDragGestures(
-                    onDragStart = { dragAmount = 0f },
-                    onHorizontalDrag = { _, amount -> dragAmount += amount },
-                    onDragEnd = {
-                        if (abs(dragAmount) > 90f) {
-                            if (dragAmount < 0 && safePage < pageCount - 1) setPage(safePage + 1)
-                            if (dragAmount > 0 && safePage > 0) setPage(safePage - 1)
-                        }
-                        dragAmount = 0f
+        LinearProgressIndicator(progress = { ((di + 1).toFloat() / 45f).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().height(3.dp), color = Color(0xFF9569D9), trackColor = Color(0xFF2D3948))
+        Box(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp, vertical = 10.dp).pointerInput(di, safePage) {
+            detectHorizontalDragGestures(
+                onDragStart = { dragAmount = 0f },
+                onHorizontalDrag = { _, amount -> dragAmount += amount },
+                onDragEnd = {
+                    if (abs(dragAmount) > 90f) {
+                        if (dragAmount < 0 && safePage < pageCount - 1) setPage(safePage + 1)
+                        if (dragAmount > 0 && safePage > 0) setPage(safePage - 1)
                     }
-                )
-            },
-            Alignment.Center
-        ) {
-            if (d == null) {
-                Text("This chapter is being prepared.", color = Color.White, fontFamily = Handwritten, fontSize = 22.sp)
-            } else {
-                AnimatedContent(
-                    targetState = safePage,
-                    transitionSpec = {
-                        if (forward) {
-                            (slideInHorizontally { it } + fadeIn()).togetherWith(slideOutHorizontally { -it / 3 } + fadeOut())
-                        } else {
-                            (slideInHorizontally { -it } + fadeIn()).togetherWith(slideOutHorizontally { it / 3 } + fadeOut())
-                        }
-                    },
-                    label = "physicalPageTurn"
-                ) { animatedPage -> NotebookPage(d, animatedPage) }
-            }
+                    dragAmount = 0f
+                }
+            )
+        }, Alignment.Center) {
+            if (d == null) Text("This chapter is being prepared.", color = Color.White, fontFamily = Handwritten, fontSize = 22.sp)
+            else AnimatedContent(targetState = safePage, transitionSpec = {
+                if (forward) (slideInHorizontally { it } + fadeIn()).togetherWith(slideOutHorizontally { -it / 3 } + fadeOut())
+                else (slideInHorizontally { -it } + fadeIn()).togetherWith(slideOutHorizontally { it / 3 } + fadeOut())
+            }, label = "physicalPageTurn") { animatedPage -> NotebookPage(d, animatedPage) }
         }
         ReaderBottomBar(safePage, pageCount, setPage, complete)
     }
@@ -137,7 +110,6 @@ private fun NotebookPage(d: Day, page: Int) {
                 Spacer(Modifier.height(8.dp))
                 if (page == 0) {
                     RealHardwareReference(d.number)
-                    if (d.number in setOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45)) Spacer(Modifier.height(10.dp))
                     LessonVisual(d.number)
                     Spacer(Modifier.height(12.dp))
                 }
@@ -145,7 +117,7 @@ private fun NotebookPage(d: Day, page: Int) {
                 Spacer(Modifier.height(18.dp))
                 Text(if (page == 0) "↳ turn the page — the second page goes deeper" else "✎ field note: explain this topic without looking at the page", fontFamily = Handwritten, fontSize = 16.sp, color = Muted)
             }
-            Canvas(Modifier.align(Alignment.BottomEnd).size(30.dp)) { drawLine(Color(0xFFC8BCA4), androidx.compose.ui.geometry.Offset(2f, 28f), androidx.compose.ui.geometry.Offset(28f, 2f), 2f) }
+            Canvas(Modifier.align(Alignment.BottomEnd).size(30.dp)) { drawLine(Color(0xFFC8BCA4), Offset(2f, 28f), Offset(28f, 2f), 2f) }
         }
     }
 }
@@ -153,9 +125,7 @@ private fun NotebookPage(d: Day, page: Int) {
 @Composable
 private fun BookPageHeader(d: Day, page: Int) {
     Row(verticalAlignment = Alignment.Top) {
-        Box(Modifier.background(listOf(Yellow, Pink, Sky, Green, Orange)[(d.number - 1).mod(5)], RoundedCornerShape(10.dp)).padding(horizontal = 11.dp, vertical = 7.dp)) {
-            Text("DAY ${d.number}", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink)
-        }
+        Box(Modifier.background(listOf(Yellow, Pink, Sky, Green, Orange)[(d.number - 1).mod(5)], RoundedCornerShape(10.dp)).padding(horizontal = 11.dp, vertical = 7.dp)) { Text("DAY ${d.number}", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink) }
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Text(d.title, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 29.sp, maxLines = 2, color = BlueInk)
@@ -201,7 +171,7 @@ private fun PremiumContent(raw: String) {
 private fun isHeading(s: String): Boolean {
     val letters = s.filter { it.isLetter() }
     val upper = letters.isNotEmpty() && letters.count { it.isUpperCase() }.toFloat() / letters.length > .72f
-    val keywords = listOf("KEY IDEA", "CORE IDEA", "REAL WORLD", "WHY IT MATTERS", "HANDS-ON", "INTERVIEW", "TROUBLESHOOTING", "REMEMBER", "VOCABULARY", "ARCHITECTURE", "TOOLS", "CHECKPOINT", "THE BIG PICTURE", "NEXT STEP", "TASK", "STORAGE VIEW", "AI TRAINING", "DATA PATH", "MODEL", "WORKLOAD", "COMMANDS")
+    val keywords = listOf("KEY IDEA", "CORE IDEA", "REAL WORLD", "WHY IT MATTERS", "HANDS-ON", "INTERVIEW", "TROUBLESHOOTING", "REMEMBER", "VOCABULARY", "ARCHITECTURE", "TOOLS", "CHECKPOINT", "THE BIG PICTURE", "NEXT STEP", "TASK", "STORAGE VIEW", "AI TRAINING", "DATA PATH", "MODEL", "WORKLOAD", "COMMANDS", "DEEP DIVE")
     return s.startsWith("#") || keywords.any { s.uppercase().startsWith(it) } || (upper && s.length < 82)
 }
 
