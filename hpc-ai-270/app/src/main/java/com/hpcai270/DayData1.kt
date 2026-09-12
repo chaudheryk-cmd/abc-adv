@@ -1,7 +1,7 @@
 package com.hpcai270
 
-// Day 1–5. Additional chapters are released as part of the 270-day curriculum.
-val hpcDays = listOf(
+// Days 1–5
+val hpcDaysPart1 = listOf(
 Day(1,"What is HPC?","The big picture","HPC = High-Performance Computing. Instead of asking one computer to do a huge calculation, HPC connects many powerful machines so work can happen in parallel.\n\nThink: BIG problem → many computers → one result.","THE 5 BUILDING BLOCKS\n\nCompute → CPU / GPU\nMemory → working space\nNetwork → moves data\nStorage → keeps datasets & results\nScheduler → decides who runs when\n\nAI is a major HPC workload.","Explain HPC aloud in 30 seconds. Draw a 3-node cluster."),
 Day(2,"Inside an HPC cluster","Nodes and roles","A node is a computer in the cluster. Different nodes can have different jobs.\n\nLOGIN NODE: users connect here.\nCONTROL NODE: manages the cluster.\nCOMPUTE NODE: performs jobs.\nSTORAGE: serves data.","USER\n  ↓\nLOGIN → SCHEDULER → COMPUTE 1\n                     COMPUTE 2\n                     COMPUTE 3\n                          ↓\n                       STORAGE\n\nThe network is the glue.","Sketch this architecture without looking."),
 Day(3,"CPU vs GPU","Why AI loves GPUs","CPU: fewer powerful, flexible cores. Great for operating systems and varied workloads.\n\nGPU: many parallel execution units. Excellent when the same operation is applied to huge amounts of data.","AI TRAINING\n\nDataset → Storage → Network → GPU memory → GPU compute\n\nA powerful GPU can sit idle if storage or networking cannot deliver data quickly enough.","Define CPU, GPU, GPU memory and GPU starvation."),
