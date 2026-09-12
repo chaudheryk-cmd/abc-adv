@@ -21,7 +21,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
@@ -67,7 +66,6 @@ fun Reader(
             color = Color(0xFF9569D9),
             trackColor = Color(0xFF2D3948)
         )
-
         Box(
             Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp, vertical = 10.dp).pointerInput(di, safePage) {
                 detectHorizontalDragGestures(
@@ -100,24 +98,13 @@ fun Reader(
                 ) { animatedPage -> NotebookPage(d, animatedPage) }
             }
         }
-
         ReaderBottomBar(safePage, pageCount, setPage, complete)
     }
 }
 
 @Composable
-private fun ReaderTopBar(
-    day: Int,
-    page: Int,
-    bookmarked: Boolean,
-    close: () -> Unit,
-    openIndex: () -> Unit,
-    toggleBookmark: () -> Unit
-) {
-    Row(
-        Modifier.fillMaxWidth().height(60.dp).padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+private fun ReaderTopBar(day: Int, page: Int, bookmarked: Boolean, close: () -> Unit, openIndex: () -> Unit, toggleBookmark: () -> Unit) {
+    Row(Modifier.fillMaxWidth().height(60.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         TextButton(onClick = close) { Text("‹  Close", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
         Spacer(Modifier.weight(1f))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -132,53 +119,33 @@ private fun ReaderTopBar(
 
 @Composable
 private fun ReaderBottomBar(page: Int, pageCount: Int, setPage: (Int) -> Unit, complete: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 7.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        OutlinedButton(onClick = { setPage((page - 1).coerceAtLeast(0)) }, enabled = page > 0, shape = RoundedCornerShape(18.dp)) {
-            Text("← Previous", fontFamily = Handwritten, fontSize = 16.sp)
-        }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 7.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        OutlinedButton(onClick = { setPage((page - 1).coerceAtLeast(0)) }, enabled = page > 0, shape = RoundedCornerShape(18.dp)) { Text("← Previous", fontFamily = Handwritten, fontSize = 16.sp) }
         Text("SWIPE  ←  →", color = Color(0xFFD2D9E2), fontFamily = Handwritten, fontSize = 17.sp)
-        if (page < pageCount - 1) {
-            Button(onClick = { setPage(page + 1) }, shape = RoundedCornerShape(18.dp)) { Text("Next →", fontFamily = Handwritten, fontSize = 17.sp) }
-        } else {
-            Button(onClick = complete, shape = RoundedCornerShape(18.dp)) { Text("✓ Complete day", fontFamily = Handwritten, fontSize = 17.sp) }
-        }
+        if (page < pageCount - 1) Button(onClick = { setPage(page + 1) }, shape = RoundedCornerShape(18.dp)) { Text("Next →", fontFamily = Handwritten, fontSize = 17.sp) }
+        else Button(onClick = complete, shape = RoundedCornerShape(18.dp)) { Text("✓ Complete day", fontFamily = Handwritten, fontSize = 17.sp) }
     }
 }
 
 @Composable
 private fun NotebookPage(d: Day, page: Int) {
-    Card(
-        Modifier.fillMaxWidth().fillMaxHeight(.99f).shadow(18.dp, RoundedCornerShape(8.dp)),
-        colors = CardDefaults.cardColors(containerColor = Paper),
-        shape = RoundedCornerShape(8.dp)
-    ) {
+    Card(Modifier.fillMaxWidth().fillMaxHeight(.99f).shadow(18.dp, RoundedCornerShape(8.dp)), colors = CardDefaults.cardColors(containerColor = Paper), shape = RoundedCornerShape(8.dp)) {
         Box(Modifier.fillMaxSize()) {
             RuledPaper()
-            Column(
-                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 38.dp, end = 22.dp, top = 17.dp, bottom = 30.dp)
-            ) {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 38.dp, end = 22.dp, top = 17.dp, bottom = 30.dp)) {
                 BookPageHeader(d, page)
                 Spacer(Modifier.height(8.dp))
                 if (page == 0) {
+                    RealHardwareReference(d.number)
+                    if (d.number in setOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45)) Spacer(Modifier.height(10.dp))
                     LessonVisual(d.number)
                     Spacer(Modifier.height(12.dp))
                 }
                 PremiumContent(d.pages[page])
                 Spacer(Modifier.height(18.dp))
-                Text(
-                    if (page == 0) "↳ turn the page — the second page goes deeper" else "✎ field note: explain this topic without looking at the page",
-                    fontFamily = Handwritten,
-                    fontSize = 16.sp,
-                    color = Muted
-                )
+                Text(if (page == 0) "↳ turn the page — the second page goes deeper" else "✎ field note: explain this topic without looking at the page", fontFamily = Handwritten, fontSize = 16.sp, color = Muted)
             }
-            Canvas(Modifier.align(Alignment.BottomEnd).size(30.dp)) {
-                drawLine(Color(0xFFC8BCA4), androidx.compose.ui.geometry.Offset(2f, 28f), androidx.compose.ui.geometry.Offset(28f, 2f), 2f)
-            }
+            Canvas(Modifier.align(Alignment.BottomEnd).size(30.dp)) { drawLine(Color(0xFFC8BCA4), androidx.compose.ui.geometry.Offset(2f, 28f), androidx.compose.ui.geometry.Offset(28f, 2f), 2f) }
         }
     }
 }
@@ -186,22 +153,12 @@ private fun NotebookPage(d: Day, page: Int) {
 @Composable
 private fun BookPageHeader(d: Day, page: Int) {
     Row(verticalAlignment = Alignment.Top) {
-        Box(
-            Modifier.background(listOf(Yellow, Pink, Sky, Green, Orange)[(d.number - 1).mod(5)], RoundedCornerShape(10.dp)).padding(horizontal = 11.dp, vertical = 7.dp)
-        ) {
+        Box(Modifier.background(listOf(Yellow, Pink, Sky, Green, Orange)[(d.number - 1).mod(5)], RoundedCornerShape(10.dp)).padding(horizontal = 11.dp, vertical = 7.dp)) {
             Text("DAY ${d.number}", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink)
         }
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
-            Text(
-                d.title,
-                fontFamily = Handwritten,
-                fontWeight = FontWeight.Bold,
-                fontSize = 28.sp,
-                lineHeight = 29.sp,
-                maxLines = 2,
-                color = BlueInk
-            )
+            Text(d.title, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 29.sp, maxLines = 2, color = BlueInk)
             Text(d.topic, fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 20.sp, color = Plum, maxLines = 2)
         }
         Text("${page + 1}/2", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Muted)
@@ -212,10 +169,7 @@ private fun BookPageHeader(d: Day, page: Int) {
 private fun RuledPaper() {
     Canvas(Modifier.fillMaxSize()) {
         var y = 55f
-        while (y < size.height) {
-            drawLine(Rule, Offset(0f, y), Offset(size.width, y), 1f)
-            y += 28f
-        }
+        while (y < size.height) { drawLine(Rule, Offset(0f, y), Offset(size.width, y), 1f); y += 28f }
         drawLine(Color(0xFFEFA6AE), Offset(25f, 0f), Offset(25f, size.height), 2f)
     }
 }
@@ -232,9 +186,7 @@ private fun PremiumContent(raw: String) {
             when {
                 heading -> {
                     val fill = listOf(Pink, Yellow, Sky, Green, Orange)[index.mod(5)]
-                    Box(Modifier.background(fill, RoundedCornerShape(7.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                        Text(line.removePrefix("#").trim(), fontFamily = Handwritten, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
-                    }
+                    Box(Modifier.background(fill, RoundedCornerShape(7.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) { Text(line.removePrefix("#").trim(), fontFamily = Handwritten, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink) }
                 }
                 bullet -> Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                     Text("✦", fontFamily = Handwritten, fontWeight = FontWeight.Bold, color = Plum, fontSize = 18.sp, modifier = Modifier.width(21.dp))
