@@ -23,11 +23,14 @@ fun hpcBookDays(): List<Day> {
 }
 
 private fun twoPageDay(day: Day): Day {
-    if (day.pages.size <= 2) return day
+    if (day.pages.size <= 2) {
+        val deeper = day.pages.getOrElse(1) { "" } + "\n\n" + depthNote(day.number)
+        return Day(day.number, day.title, day.topic, day.page1, deeper, day.task, listOf(day.page1, deeper))
+    }
 
     val split = (day.pages.size + 1) / 2
     val left = day.pages.take(split).joinToString("\n\n")
-    val right = day.pages.drop(split).joinToString("\n\n")
+    val right = day.pages.drop(split).joinToString("\n\n") + "\n\n" + depthNote(day.number)
 
     return Day(
         number = day.number,
