@@ -14,10 +14,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.graphicsLayer
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.pointer.pointerInput
@@ -58,7 +57,6 @@ fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, comple
             color = Color(0xFF9569D9),
             trackColor = Color(0xFF2D3948)
         )
-
         BoxWithConstraints(
             Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp, vertical = 10.dp),
             contentAlignment = Alignment.Center
@@ -71,12 +69,10 @@ fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, comple
                 dragDistance > 20f && canGoBack -> safePage - 1
                 else -> safePage
             }
-
             if (d == null) {
-                Text("This chapter is being prepared.", color = Color.White, fontFamily = Handwritten, fontSize = 22.sp)
+                Text("This chapter is being prepared.", color = Color.White, fontSize = 22.sp)
             } else {
                 if (targetPage != safePage) NotebookPage(d, targetPage)
-
                 NotebookPage(
                     d = d,
                     page = safePage,
@@ -126,7 +122,6 @@ fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, comple
                 )
             }
         }
-
         ReaderBottomBar(safePage, pageCount, setPage, complete)
     }
 }
@@ -149,10 +144,10 @@ private fun ReaderTopBar(day: Int, page: Int, pageCount: Int, bookmarked: Boolea
 @Composable
 private fun ReaderBottomBar(page: Int, pageCount: Int, setPage: (Int) -> Unit, complete: () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 7.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        OutlinedButton(onClick = { setPage((page - 1).coerceAtLeast(0)) }, enabled = page > 0, shape = RoundedCornerShape(18.dp)) { Text("← Previous", fontFamily = Handwritten, fontSize = 16.sp) }
-        Text("PAGE ${page + 1} / $pageCount  •  SWIPE", color = Color(0xFFD2D9E2), fontFamily = Handwritten, fontSize = 16.sp)
-        if (page < pageCount - 1) Button(onClick = { setPage(page + 1) }, shape = RoundedCornerShape(18.dp)) { Text("Next →", fontFamily = Handwritten, fontSize = 17.sp) }
-        else Button(onClick = complete, shape = RoundedCornerShape(18.dp)) { Text("✓ Complete day", fontFamily = Handwritten, fontSize = 17.sp) }
+        OutlinedButton(onClick = { setPage((page - 1).coerceAtLeast(0)) }, enabled = page > 0, shape = RoundedCornerShape(18.dp)) { Text("← Previous", fontSize = 16.sp) }
+        Text("PAGE ${page + 1} / $pageCount  •  SWIPE", color = Color(0xFFD2D9E2), fontSize = 16.sp)
+        if (page < pageCount - 1) Button(onClick = { setPage(page + 1) }, shape = RoundedCornerShape(18.dp)) { Text("Next →", fontSize = 17.sp) }
+        else Button(onClick = complete, shape = RoundedCornerShape(18.dp)) { Text("✓ Complete day", fontSize = 17.sp) }
     }
 }
 
@@ -174,7 +169,6 @@ private fun NotebookPage(d: Day, page: Int, modifier: Modifier = Modifier) {
                 Text(
                     if (page == d.pages.lastIndex) "✎ END OF DAY ${d.number} — explain the topic from memory before moving on"
                     else "↳ keep reading — this lesson is intentionally deeper than a fixed page count",
-                    fontFamily = Handwritten,
                     fontSize = 16.sp,
                     color = Muted
                 )
@@ -188,14 +182,14 @@ private fun NotebookPage(d: Day, page: Int, modifier: Modifier = Modifier) {
 private fun BookPageHeader(d: Day, page: Int, pageCount: Int) {
     Row(verticalAlignment = Alignment.Top) {
         Box(Modifier.background(listOf(Yellow, Pink, Sky, Green, Orange)[(d.number - 1).mod(5)], RoundedCornerShape(10.dp)).padding(horizontal = 11.dp, vertical = 7.dp)) {
-            Text("DAY ${d.number}", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink)
+            Text("DAY ${d.number}", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink)
         }
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
-            Text(d.title, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 29.sp, maxLines = 3, color = BlueInk)
-            Text(d.topic, fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 20.sp, color = Plum, maxLines = 3)
+            Text(d.title, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 29.sp, maxLines = 3, color = BlueInk)
+            Text(d.topic, fontSize = 18.sp, lineHeight = 20.sp, color = Plum, maxLines = 3)
         }
-        Text("${page + 1}/$pageCount", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Muted)
+        Text("${page + 1}/$pageCount", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Muted)
     }
 }
 
@@ -224,14 +218,14 @@ private fun PremiumContent(raw: String) {
                 heading -> {
                     val fill = listOf(Pink, Yellow, Sky, Green, Orange)[index.mod(5)]
                     Box(Modifier.background(fill, RoundedCornerShape(7.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                        Text(line.removePrefix("#").trim(), fontFamily = Handwritten, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
+                        Text(line.removePrefix("#").trim(), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
                     }
                 }
                 bullet -> Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-                    Text("✦", fontFamily = Handwritten, fontWeight = FontWeight.Bold, color = Plum, fontSize = 18.sp, modifier = Modifier.width(21.dp))
-                    Text(cleanBullet(line), fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 25.sp, color = BlueInk)
+                    Text("✦", fontWeight = FontWeight.Bold, color = Plum, fontSize = 18.sp, modifier = Modifier.width(21.dp))
+                    Text(cleanBullet(line), fontSize = 18.sp, lineHeight = 25.sp, color = BlueInk)
                 }
-                else -> Text(line.replace("**", ""), fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 25.sp, color = BlueInk)
+                else -> Text(line.replace("**", ""), fontSize = 18.sp, lineHeight = 25.sp, color = BlueInk)
             }
         }
     }

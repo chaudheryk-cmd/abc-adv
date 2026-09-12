@@ -9,7 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -39,21 +39,17 @@ fun Cover(day: Int, start: () -> Unit, openIndex: () -> Unit, openBookmark: () -
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CoverTopBar(openIndex, openBookmark, hasBookmark)
-
         Spacer(Modifier.height(8.dp))
         Text("KUNAL'S JOURNEY", color = Cyan, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
         Text("HPC + AI", color = White, fontSize = 45.sp, fontWeight = FontWeight.Black, letterSpacing = (-1).sp)
         Text("FIELD MANUAL", color = White, fontSize = 21.sp, fontWeight = FontWeight.Medium, letterSpacing = 5.sp)
         Spacer(Modifier.height(4.dp))
         Text("FROM LINUX & STORAGE → HPC → AI INFRASTRUCTURE", color = Muted, fontSize = 11.sp, textAlign = TextAlign.Center, letterSpacing = .7.sp)
-
         Spacer(Modifier.height(14.dp))
         HpcHeroGraphic(Modifier.fillMaxWidth().height(195.dp))
-
         Spacer(Modifier.height(12.dp))
         Text("270 DAYS  •  BUILD THE SKILL", color = Color(0xFFD7C8FF), fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
         Spacer(Modifier.height(12.dp))
-
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FeatureCard("▣", "DEEP\nEXPLANATIONS", "Concept → production")
             FeatureCard("⌘", "REAL\nCOMMANDS", "Hands-on Linux")
@@ -63,7 +59,6 @@ fun Cover(day: Int, start: () -> Unit, openIndex: () -> Unit, openBookmark: () -
             FeatureCard("▤", "REAL\nHARDWARE", "NVIDIA • DDN • Dell")
             FeatureCard("✦", "INTERVIEW\nPREP", "Think like an engineer")
         }
-
         Spacer(Modifier.weight(1f))
         Button(
             onClick = start,
@@ -101,7 +96,7 @@ private fun CoverTopBar(openIndex: () -> Unit, openBookmark: () -> Unit, hasBook
 }
 
 @Composable
-private fun FeatureCard(icon: String, title: String, subtitle: String) {
+private fun RowScope.FeatureCard(icon: String, title: String, subtitle: String) {
     Column(
         Modifier
             .weight(1f)
@@ -139,7 +134,12 @@ private fun HpcHeroGraphic(modifier: Modifier = Modifier) {
             val rackTop = center.y - 45f
             repeat(4) { row ->
                 val y = rackTop + row * 25f
-                drawRoundRect(Color(0xFF1B2A3D), Offset(rackLeft, y), androidx.compose.ui.geometry.Size(136f, 18f), 5f, 5f)
+                drawRoundRect(
+                    color = Color(0xFF1B2A3D),
+                    topLeft = Offset(rackLeft, y),
+                    size = androidx.compose.ui.geometry.Size(136f, 18f),
+                    cornerRadius = CornerRadius(5f, 5f)
+                )
                 repeat(8) { col ->
                     val x = rackLeft + 12f + col * 15f
                     drawCircle(if ((row + col) % 3 == 0) Cyan else Blue, 2.2f, Offset(x, y + 9f))
