@@ -9,5 +9,20 @@ import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+
+private const val TOTAL_DAYS = 50
+
 class MainActivity:ComponentActivity(){override fun onCreate(b:Bundle?){super.onCreate(b);setContent{MaterialTheme{Surface(Modifier.fillMaxSize(),Color(0xFFF3E9D7)){HpcBook(this)}}}}}
-@Composable fun HpcBook(c:Context){var day by remember{mutableIntStateOf(c.getSharedPreferences("progress",0).getInt("day",0))};var page by remember{mutableIntStateOf(0)};var open by remember{mutableStateOf(false)};if(!open)Cover(day){open=true}else Reader(day,page,{page=it},{open=false}){val n=(day+1).coerceAtMost(269);c.getSharedPreferences("progress",0).edit().putInt("day",n).apply();day=n;page=0}}
+
+@Composable fun HpcBook(c:Context){
+    var day by remember{mutableIntStateOf(c.getSharedPreferences("progress",0).getInt("day",0).coerceIn(0,TOTAL_DAYS-1))}
+    var page by remember{mutableIntStateOf(0)}
+    var open by remember{mutableStateOf(false)}
+    if(!open) Cover(day){open=true}
+    else Reader(day,page,{page=it},{open=false}){
+        val n=(day+1).coerceAtMost(TOTAL_DAYS-1)
+        c.getSharedPreferences("progress",0).edit().putInt("day",n).apply()
+        day=n
+        page=0
+    }
+}
