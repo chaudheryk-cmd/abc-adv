@@ -44,10 +44,9 @@ fun BookIndex(
     val scope = rememberCoroutineScope()
 
     fun jumpToDay(dayNumber: Int) {
-        val safeDay = dayNumber.coerceIn(1, 270)
-        val index = days.indexOfFirst { it.number == safeDay }
+        val index = days.indexOfFirst { it.number == dayNumber }
         if (index >= 0) {
-            expandedDay = safeDay - 1
+            expandedDay = dayNumber - 1
             scope.launch { listState.animateScrollToItem(index) }
             showGoToDay = false
             jumpError = false
@@ -81,9 +80,7 @@ fun BookIndex(
                         Spacer(Modifier.height(4.dp))
                         Text("Open any day, inspect every page, or jump directly to a lesson.", fontSize = 13.sp, color = Muted)
                     }
-                    OutlinedButton(onClick = { showGoToDay = true }) {
-                        Text("Go to Day")
-                    }
+                    OutlinedButton(onClick = { showGoToDay = true }) { Text("Go to Day") }
                 }
                 if (bookmarkedDay != null && bookmarkedPage != null) {
                     Spacer(Modifier.height(10.dp))
@@ -201,6 +198,7 @@ private fun IndexFastScrollRail(
     val firstVisible = state.firstVisibleItemIndex
     val maxFirst = (itemCount - visibleCount).coerceAtLeast(1)
     val thumbFraction = (firstVisible.toFloat() / maxFirst).coerceIn(0f, 1f)
+    val scope = rememberCoroutineScope()
 
     Box(modifier.background(Rail.copy(alpha = 0.55f), RoundedCornerShape(9.dp))) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -221,12 +219,10 @@ private fun IndexFastScrollRail(
                             change.consume()
                             val trackPx = size.height.toFloat().coerceAtLeast(1f)
                             val deltaFraction = dragAmount.y / trackPx
-                            val target = ((state.firstVisibleItemIndex.toFloat() / maxFirst) + deltaFraction)
-                                .coerceIn(0f, 1f)
+                            val currentFraction = (state.firstVisibleItemIndex.toFloat() / maxFirst).coerceIn(0f, 1f)
+                            val target = (currentFraction + deltaFraction).coerceIn(0f, 1f)
                             val targetIndex = (target * maxFirst).toInt().coerceIn(0, maxFirst)
-                            kotlinx.coroutines.GlobalScope.launch {
-                                state.scrollToItem(targetIndex)
-                            }
+                            scope.launch { state.scrollToItem(targetIndex) }
                         }
                     }
             )
