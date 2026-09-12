@@ -3,29 +3,28 @@ package com.hpcai270
 private const val PUBLISHED_DAYS = 45
 
 /**
- * The book is a real two-page-per-day field manual.
- * Existing lesson material is preserved and flowed into two physical pages
- * so the reader behaves like a 2-page/day book rather than a 7-page/day slide deck.
+ * Published study book: Days 1-45 only.
+ * Days 2-5 use the expanded field notes instead of the old short drafts.
+ * Every day is presented as exactly two physical notebook pages.
  */
 fun hpcBookDays(): List<Day> {
     val source = listOf(
         day1Expanded,
-        *hpcDaysPart1.drop(1).toTypedArray(),
+        *expandedDays2to5.toTypedArray(),
         *hpcDaysPart2.toTypedArray(),
         *hpcDaysPart3.toTypedArray(),
         *hpcDaysPart4.take(10).toTypedArray(),
         *hpcDaysPart5.toTypedArray()
-    ).take(PUBLISHED_DAYS)
+    ).distinctBy { it.number }
+        .sortedBy { it.number }
+        .take(PUBLISHED_DAYS)
 
-    return source.map { twoPageDay(it) }
+    return source.map(::twoPageDay)
 }
 
 private fun twoPageDay(day: Day): Day {
     if (day.pages.size <= 2) return day
 
-    // Preserve all existing lesson material while presenting it as the
-    // intended two physical book pages. The pages remain vertically scrollable
-    // on a phone so no lesson text is silently discarded.
     val split = (day.pages.size + 1) / 2
     val left = day.pages.take(split).joinToString("\n\n")
     val right = day.pages.drop(split).joinToString("\n\n")
