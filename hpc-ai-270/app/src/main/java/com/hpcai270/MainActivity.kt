@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
-private const val TOTAL_DAYS = 50
+private const val TOTAL_DAYS = 270
 
 class MainActivity:ComponentActivity(){override fun onCreate(b:Bundle?){super.onCreate(b);setContent{MaterialTheme{Surface(Modifier.fillMaxSize(),Color(0xFFF3E9D7)){HpcBook(this)}}}}}
 
