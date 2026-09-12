@@ -33,7 +33,7 @@ private val Orange = Color(0xFFFFB454)
 private enum class HomeTab { HOME, INDEX, PROGRESS, BOOKMARKS, PROFILE }
 
 @Composable
-fun Cover(day: Int, start: () -> Unit, openIndex: () -> Unit, openBookmark: () -> Unit, hasBookmark: Boolean) {
+fun Cover(day: Int, start: () -> Unit, openIndex: () -> Unit, openBookmark: () -> Unit, hasBookmark: Boolean, openPage: (Int, Int) -> Unit) {
     val days = remember { hpcBookDays() }
     var tab by remember { mutableStateOf(HomeTab.HOME) }
     var searchOpen by remember { mutableStateOf(false) }
@@ -45,28 +45,25 @@ fun Cover(day: Int, start: () -> Unit, openIndex: () -> Unit, openBookmark: () -
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Navy, Color(0xFF081321), Navy2)))) {
         when {
             settingsOpen -> SettingsPanel(onClose = { settingsOpen = false })
-            searchOpen -> SearchPanel(days = days, onClose = { searchOpen = false }, openDay = { _, _ -> searchOpen = false; start() })
+            searchOpen -> SearchPanel(days = days, onClose = { searchOpen = false }, openDay = { d, p -> searchOpen = false; openPage(d, p) })
             tab == HomeTab.HOME -> HomeDashboard(
                 completed = day,
                 hasBookmark = hasBookmark,
                 start = start,
-                openIndex = { goIndex(); openIndex() },
+                openIndex = { goIndex() },
                 openBookmark = openBookmark,
                 openSearch = { searchOpen = true },
                 openSettings = { settingsOpen = true },
                 openProgress = { tab = HomeTab.PROGRESS },
                 openProfile = { tab = HomeTab.PROFILE }
             )
-            tab == HomeTab.INDEX -> {
-                // The existing index is the real day/page navigator.
-                BookIndex(
-                    completed = day,
-                    bookmarkedDay = null,
-                    bookmarkedPage = null,
-                    openPage = { _, _ -> openIndex() },
-                    close = { goHome() }
-                )
-            }
+            tab == HomeTab.INDEX -> BookIndex(
+                completed = day,
+                bookmarkedDay = null,
+                bookmarkedPage = null,
+                openPage = openPage,
+                close = { goHome() }
+            )
             tab == HomeTab.PROGRESS -> ProgressPanel(day, days, onBack = { goHome() }, onIndex = { goIndex() })
             tab == HomeTab.BOOKMARKS -> BookmarkPanel(hasBookmark, onBack = { goHome() }, openBookmark = openBookmark)
             tab == HomeTab.PROFILE -> ProfilePanel(day, onBack = { goHome() }, onSettings = { settingsOpen = true })
@@ -76,7 +73,7 @@ fun Cover(day: Int, start: () -> Unit, openIndex: () -> Unit, openBookmark: () -
             BottomNavigationBar(
                 selected = tab,
                 onHome = ::goHome,
-                onIndex = { goIndex(); openIndex() },
+                onIndex = ::goIndex,
                 onProgress = { tab = HomeTab.PROGRESS },
                 onBookmarks = { tab = HomeTab.BOOKMARKS },
                 onProfile = { tab = HomeTab.PROFILE }
@@ -86,17 +83,7 @@ fun Cover(day: Int, start: () -> Unit, openIndex: () -> Unit, openBookmark: () -
 }
 
 @Composable
-private fun HomeDashboard(
-    completed: Int,
-    hasBookmark: Boolean,
-    start: () -> Unit,
-    openIndex: () -> Unit,
-    openBookmark: () -> Unit,
-    openSearch: () -> Unit,
-    openSettings: () -> Unit,
-    openProgress: () -> Unit,
-    openProfile: () -> Unit
-) {
+private fun HomeDashboard(completed: Int, hasBookmark: Boolean, start: () -> Unit, openIndex: () -> Unit, openBookmark: () -> Unit, openSearch: () -> Unit, openSettings: () -> Unit, openProgress: () -> Unit, openProfile: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 12.dp)) {
         Row(Modifier.fillMaxWidth().height(48.dp), verticalAlignment = Alignment.CenterVertically) {
             Column {
@@ -108,11 +95,7 @@ private fun HomeDashboard(
             HeaderAction("☆", openBookmark, enabled = hasBookmark)
             HeaderAction("⚙", openSettings)
         }
-
-        LazyColumn(
-            Modifier.fillMaxSize().padding(bottom = 72.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
+        LazyColumn(Modifier.fillMaxSize().padding(bottom = 72.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             item {
                 Spacer(Modifier.height(4.dp))
                 Text("KUNAL'S JOURNEY", color = Cyan, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
@@ -129,10 +112,10 @@ private fun HomeDashboard(
             }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    QuickAction("▤", "INDEX", "Browse all days") { openIndex() }
-                    QuickAction("☆", "BOOKMARKS", "Saved pages") { openBookmark() }
-                    QuickAction("⌕", "SEARCH", "Find a topic") { openSearch() }
-                    QuickAction("⚙", "SETTINGS", "App options") { openSettings() }
+                    QuickAction("▤", "INDEX", "Browse all days", openIndex)
+                    QuickAction("☆", "BOOKMARKS", "Saved pages", openBookmark)
+                    QuickAction("⌕", "SEARCH", "Find a topic", openSearch)
+                    QuickAction("⚙", "SETTINGS", "App options", openSettings)
                 }
             }
             item {
@@ -146,14 +129,14 @@ private fun HomeDashboard(
             }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ModuleCard("▣", "DEEP\nEXPLANATIONS", "Concept → production", Purple) { start() }
-                    ModuleCard("⌘", "REAL\nCOMMANDS", "Labs & Linux", Blue) { start() }
+                    ModuleCard("▣", "DEEP\nEXPLANATIONS", "Concept → production", Purple, start)
+                    ModuleCard("⌘", "REAL\nCOMMANDS", "Labs & Linux", Blue, start)
                 }
             }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ModuleCard("▤", "REAL\nHARDWARE", "NVIDIA • DDN • Dell", Green) { start() }
-                    ModuleCard("✦", "INTERVIEW\nPREP", "Scenarios & answers", Orange) { start() }
+                    ModuleCard("▤", "REAL\nHARDWARE", "NVIDIA • DDN • Dell", Green, start)
+                    ModuleCard("✦", "INTERVIEW\nPREP", "Scenarios & answers", Orange, start)
                 }
             }
             item {
@@ -180,9 +163,7 @@ private fun HeaderAction(icon: String, onClick: () -> Unit, enabled: Boolean = t
 private fun ProgressHero(completed: Int, onClick: () -> Unit) {
     val fraction = (completed / 270f).coerceIn(0f, 1f)
     Row(Modifier.fillMaxWidth().background(Color(0xCC111F31), RoundedCornerShape(18.dp)).border(1.dp, Color(0xFF29405D), RoundedCornerShape(18.dp)).clickable(onClick = onClick).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(70.dp).border(5.dp, Purple, RoundedCornerShape(50.dp)), contentAlignment = Alignment.Center) {
-            Text("${(fraction * 100).toInt()}%", color = White, fontWeight = FontWeight.Black, fontSize = 15.sp)
-        }
+        Box(Modifier.size(70.dp).border(5.dp, Purple, RoundedCornerShape(50.dp)), contentAlignment = Alignment.Center) { Text("${(fraction * 100).toInt()}%", color = White, fontWeight = FontWeight.Black, fontSize = 15.sp) }
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
             Text("YOUR PROGRESS", color = Muted, fontSize = 11.sp)
