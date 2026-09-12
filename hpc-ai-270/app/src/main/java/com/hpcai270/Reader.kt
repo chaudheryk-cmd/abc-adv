@@ -20,6 +20,8 @@ private const val TOTAL_DAYS = 50
 fun Reader(di:Int,page:Int,setPage:(Int)->Unit,close:()->Unit,complete:()->Unit){
     val all=hpcDaysPart1+hpcDaysPart2+hpcDaysPart3+hpcDaysPart4
     val d=all.getOrNull(di)
+    val pageCount=d?.pages?.size ?: 2
+    val safePage=page.coerceIn(0,pageCount-1)
     Column(Modifier.fillMaxSize().padding(9.dp)){
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
             TextButton(close){Text("‹ Close")}
@@ -30,12 +32,12 @@ fun Reader(di:Int,page:Int,setPage:(Int)->Unit,close:()->Unit,complete:()->Unit)
         }
         Box(Modifier.fillMaxWidth().weight(1f),Alignment.Center){
             if(d==null) Text("📖\n\nDay ${di+1}\n\nThis chapter is not released yet.",fontFamily=FontFamily.Cursive,fontSize=24.sp,textAlign=TextAlign.Center)
-            else Page(d,page)
+            else Page(d,safePage)
         }
         Row(Modifier.fillMaxWidth().padding(7.dp),Arrangement.SpaceBetween,Alignment.CenterVertically){
-            Button({setPage(0)},enabled=page>0){Text("← Previous")}
-            Text("${page+1} / 2",fontFamily=FontFamily.Cursive,fontSize=18.sp)
-            if(page==0) Button({setPage(1)}){Text("Turn page →")}
+            Button({setPage((safePage-1).coerceAtLeast(0))},enabled=safePage>0){Text("← Previous")}
+            Text("${safePage+1} / $pageCount",fontFamily=FontFamily.Cursive,fontSize=18.sp)
+            if(safePage<pageCount-1) Button({setPage(safePage+1)}){Text("Turn page →")}
             else Button(complete){Text(if(di==TOTAL_DAYS-1)"✓ Finish 50 days" else "✓ Complete day")}
         }
     }
@@ -48,15 +50,17 @@ fun Page(d:Day,page:Int){
             Text("DAY ${d.number}",fontSize=13.sp,fontWeight=FontWeight.Bold,color=Color(0xFF77647E))
             Text(d.title,fontFamily=FontFamily.Cursive,fontWeight=FontWeight.Bold,fontSize=30.sp)
             Text(d.topic,fontFamily=FontFamily.Cursive,fontSize=16.sp,color=Color(0xFF715D78))
-            Spacer(Modifier.height(17.dp))
-            Text(if(page==0)d.page1 else d.page2,fontFamily=FontFamily.Cursive,fontSize=18.sp,lineHeight=27.sp)
-            Spacer(Modifier.height(14.dp))
-            if(page==1) Card(colors=CardDefaults.cardColors(Color(0xFFF0E6D1)),shape=RoundedCornerShape(14.dp)){
+            Spacer(Modifier.height(12.dp))
+            if(page==0) LessonDiagram(d.number)
+            Spacer(Modifier.height(10.dp))
+            Text(d.pages[page],fontFamily=FontFamily.Cursive,fontSize=17.sp,lineHeight=25.sp)
+            Spacer(Modifier.height(12.dp))
+            if(page==d.pages.lastIndex) Card(colors=CardDefaults.cardColors(Color(0xFFF0E6D1)),shape=RoundedCornerShape(14.dp)){
                 Column(Modifier.padding(13.dp)){
                     Text("TODAY'S TASK",fontWeight=FontWeight.Bold)
                     Text(d.task,fontFamily=FontFamily.Cursive,fontSize=17.sp,lineHeight=23.sp)
                 }
-            } else Text("✎ draw it • say it • remember it",fontFamily=FontFamily.Cursive,fontSize=18.sp,color=Color(0xFF77647E))
+            } else Text("✎ draw it • say it • connect it",fontFamily=FontFamily.Cursive,fontSize=18.sp,color=Color(0xFF77647E))
         }
     }
 }
