@@ -1,11 +1,8 @@
 package com.hpcai270
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -17,16 +14,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.graphicsLayer
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-private val Paper = Color(0xFFFFFDF4)
+private val Paper = Color(0xFFFFFDF5)
 private val Ink = Color(0xFF202B3A)
 private val BlueInk = Color(0xFF173F8A)
 private val Plum = Color(0xFF6B3F8F)
@@ -45,44 +46,87 @@ fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, comple
     val d = all.getOrNull(di)
     val pageCount = d?.pages?.size ?: 1
     val safePage = page.coerceIn(0, (pageCount - 1).coerceAtLeast(0))
-    var previousPage by remember(di) { mutableIntStateOf(safePage) }
-    var dragAmount by remember { mutableFloatStateOf(0f) }
-    val forward = safePage >= previousPage
-    LaunchedEffect(safePage) { previousPage = safePage }
+    val rotation = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    var dragDistance by remember { mutableFloatStateOf(0f) }
 
     Column(Modifier.fillMaxSize().background(Leather)) {
         ReaderTopBar(di, safePage, pageCount, bookmarked, close, openIndex, toggleBookmark)
         LinearProgressIndicator(
-            progress = { ((di + 1).toFloat() / 45f).coerceIn(0f, 1f) },
+            progress = { ((di + safePage.toFloat() / pageCount.coerceAtLeast(1)) / 45f).coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth().height(3.dp),
             color = Color(0xFF9569D9),
             trackColor = Color(0xFF2D3948)
         )
-        Box(
-            Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp, vertical = 10.dp).pointerInput(di, safePage) {
-                detectHorizontalDragGestures(
-                    onDragStart = { dragAmount = 0f },
-                    onHorizontalDrag = { _, amount -> dragAmount += amount },
-                    onDragEnd = {
-                        if (abs(dragAmount) > 90f) {
-                            if (dragAmount < 0 && safePage < pageCount - 1) setPage(safePage + 1)
-                            if (dragAmount > 0 && safePage > 0) setPage(safePage - 1)
-                        }
-                        dragAmount = 0f
-                    }
-                )
-            },
-            Alignment.Center
+
+        BoxWithConstraints(
+            Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp, vertical = 10.dp),
+            contentAlignment = Alignment.Center
         ) {
+            val widthPx = constraints.maxWidth.toFloat().coerceAtLeast(1f)
+            val canGoBack = safePage > 0
+            val canGoForward = safePage < pageCount - 1
+            val targetPage = when {
+                dragDistance < -20f && canGoForward -> safePage + 1
+                dragDistance > 20f && canGoBack -> safePage - 1
+                else -> safePage
+            }
+
             if (d == null) {
                 Text("This chapter is being prepared.", color = Color.White, fontFamily = Handwritten, fontSize = 22.sp)
             } else {
-                AnimatedContent(targetState = safePage, transitionSpec = {
-                    if (forward) (slideInHorizontally { it } + fadeIn()).togetherWith(slideOutHorizontally { -it / 3 } + fadeOut())
-                    else (slideInHorizontally { -it } + fadeIn()).togetherWith(slideOutHorizontally { it / 3 } + fadeOut())
-                }, label = "physicalPageTurn") { animatedPage -> NotebookPage(d, animatedPage, pageCount) }
+                if (targetPage != safePage) NotebookPage(d, targetPage)
+
+                NotebookPage(
+                    d = d,
+                    page = safePage,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            rotationY = rotation.value
+                            transformOrigin = if (rotation.value >= 0f) TransformOrigin(0f, .5f) else TransformOrigin(1f, .5f)
+                            cameraDistance = 32f * density
+                            shadowElevation = if (abs(rotation.value) > 2f) 14f else 0f
+                        }
+                        .pointerInput(di, safePage, pageCount, widthPx) {
+                            detectHorizontalDragGestures(
+                                onDragStart = { dragDistance = 0f },
+                                onHorizontalDrag = { _, amount ->
+                                    dragDistance += amount
+                                    val allowed = (dragDistance < 0f && canGoForward) || (dragDistance > 0f && canGoBack)
+                                    if (allowed) {
+                                        val degrees = (dragDistance / widthPx * -82f).coerceIn(-82f, 82f)
+                                        scope.launch { rotation.snapTo(degrees) }
+                                    } else {
+                                        scope.launch { rotation.snapTo(0f) }
+                                    }
+                                },
+                                onDragEnd = {
+                                    val forward = dragDistance < -widthPx * .20f && canGoForward
+                                    val backward = dragDistance > widthPx * .20f && canGoBack
+                                    dragDistance = 0f
+                                    scope.launch {
+                                        when {
+                                            forward -> {
+                                                rotation.animateTo(-92f, tween(380, easing = FastOutSlowInEasing))
+                                                setPage(safePage + 1)
+                                                rotation.snapTo(0f)
+                                            }
+                                            backward -> {
+                                                rotation.animateTo(92f, tween(380, easing = FastOutSlowInEasing))
+                                                setPage(safePage - 1)
+                                                rotation.snapTo(0f)
+                                            }
+                                            else -> rotation.animateTo(0f, tween(260, easing = FastOutSlowInEasing))
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                )
             }
         }
+
         ReaderBottomBar(safePage, pageCount, setPage, complete)
     }
 }
@@ -113,12 +157,12 @@ private fun ReaderBottomBar(page: Int, pageCount: Int, setPage: (Int) -> Unit, c
 }
 
 @Composable
-private fun NotebookPage(d: Day, page: Int, pageCount: Int) {
-    Card(Modifier.fillMaxWidth().fillMaxHeight(.99f).shadow(18.dp, RoundedCornerShape(8.dp)), colors = CardDefaults.cardColors(containerColor = Paper), shape = RoundedCornerShape(8.dp)) {
+private fun NotebookPage(d: Day, page: Int, modifier: Modifier = Modifier) {
+    Card(modifier.shadow(18.dp, RoundedCornerShape(8.dp)), colors = CardDefaults.cardColors(containerColor = Paper), shape = RoundedCornerShape(8.dp)) {
         Box(Modifier.fillMaxSize()) {
             RuledPaper()
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 38.dp, end = 22.dp, top = 17.dp, bottom = 30.dp)) {
-                BookPageHeader(d, page, pageCount)
+                BookPageHeader(d, page, d.pages.size)
                 Spacer(Modifier.height(8.dp))
                 if (page == 0) {
                     RealHardwareReference(d.number)
@@ -128,7 +172,7 @@ private fun NotebookPage(d: Day, page: Int, pageCount: Int) {
                 PremiumContent(d.pages[page])
                 Spacer(Modifier.height(18.dp))
                 Text(
-                    if (page == pageCount - 1) "✎ END OF DAY ${d.number} — explain the topic from memory before moving on"
+                    if (page == d.pages.lastIndex) "✎ END OF DAY ${d.number} — explain the topic from memory before moving on"
                     else "↳ keep reading — this lesson is intentionally deeper than a fixed page count",
                     fontFamily = Handwritten,
                     fontSize = 16.sp,
@@ -143,11 +187,13 @@ private fun NotebookPage(d: Day, page: Int, pageCount: Int) {
 @Composable
 private fun BookPageHeader(d: Day, page: Int, pageCount: Int) {
     Row(verticalAlignment = Alignment.Top) {
-        Box(Modifier.background(listOf(Yellow, Pink, Sky, Green, Orange)[(d.number - 1).mod(5)], RoundedCornerShape(10.dp)).padding(horizontal = 11.dp, vertical = 7.dp)) { Text("DAY ${d.number}", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink) }
+        Box(Modifier.background(listOf(Yellow, Pink, Sky, Green, Orange)[(d.number - 1).mod(5)], RoundedCornerShape(10.dp)).padding(horizontal = 11.dp, vertical = 7.dp)) {
+            Text("DAY ${d.number}", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink)
+        }
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
-            Text(d.title, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 29.sp, maxLines = 2, color = BlueInk)
-            Text(d.topic, fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 20.sp, color = Plum, maxLines = 2)
+            Text(d.title, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 29.sp, maxLines = 3, color = BlueInk)
+            Text(d.topic, fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 20.sp, color = Plum, maxLines = 3)
         }
         Text("${page + 1}/$pageCount", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Muted)
     }
@@ -157,7 +203,10 @@ private fun BookPageHeader(d: Day, page: Int, pageCount: Int) {
 private fun RuledPaper() {
     Canvas(Modifier.fillMaxSize()) {
         var y = 55f
-        while (y < size.height) { drawLine(Rule, Offset(0f, y), Offset(size.width, y), 1f); y += 28f }
+        while (y < size.height) {
+            drawLine(Rule, Offset(0f, y), Offset(size.width, y), 1f)
+            y += 28f
+        }
         drawLine(Color(0xFFEFA6AE), Offset(25f, 0f), Offset(25f, size.height), 2f)
     }
 }
@@ -174,7 +223,9 @@ private fun PremiumContent(raw: String) {
             when {
                 heading -> {
                     val fill = listOf(Pink, Yellow, Sky, Green, Orange)[index.mod(5)]
-                    Box(Modifier.background(fill, RoundedCornerShape(7.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) { Text(line.removePrefix("#").trim(), fontFamily = Handwritten, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink) }
+                    Box(Modifier.background(fill, RoundedCornerShape(7.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
+                        Text(line.removePrefix("#").trim(), fontFamily = Handwritten, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
+                    }
                 }
                 bullet -> Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                     Text("✦", fontFamily = Handwritten, fontWeight = FontWeight.Bold, color = Plum, fontSize = 18.sp, modifier = Modifier.width(21.dp))
