@@ -1,0 +1,6 @@
+<resources>
+    <color name="hpc_icon_bg">#050B16</color>
+    <color name="hpc_icon_blue">#168CFF</color>
+    <color name="hpc_icon_blue_light">#67C7FF</color>
+    <color name="hpc_icon_silver">#DCEBFF</color>
+</resources>
