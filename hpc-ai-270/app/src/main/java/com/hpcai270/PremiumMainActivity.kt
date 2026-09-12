@@ -4,10 +4,12 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
@@ -16,10 +18,17 @@ private const val PUBLISHED_DAYS = 45
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Android 15/target 35 enforces edge-to-edge. We deliberately keep the
+        // system bars visible, then apply safeDrawingPadding so the book never
+        // sits underneath notifications, camera cutouts, or the gesture bar.
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                Surface(Modifier.fillMaxSize(), color = Color(0xFFF3E9D7)) {
+                Surface(
+                    Modifier.fillMaxSize().safeDrawingPadding(),
+                    color = Color(0xFFF3E9D7)
+                ) {
                     HpcBookPremium(this@MainActivity)
                 }
             }
@@ -45,8 +54,9 @@ private fun HpcBookPremium(c: Context) {
     }
 
     fun openAt(day: Int, page: Int) {
-        selectedDay = day.coerceIn(0, PUBLISHED_DAYS - 1)
-        selectedPage = page.coerceAtLeast(0)
+        if (day !in 0 until PUBLISHED_DAYS) return
+        selectedDay = day
+        selectedPage = page.coerceIn(0, 1)
         open = true
         showIndex = false
     }
@@ -73,7 +83,7 @@ private fun HpcBookPremium(c: Context) {
         else -> Reader(
             di = selectedDay,
             page = selectedPage,
-            setPage = { selectedPage = it },
+            setPage = { selectedPage = it.coerceIn(0, 1) },
             close = { open = false },
             complete = {
                 if (selectedDay < PUBLISHED_DAYS) {
