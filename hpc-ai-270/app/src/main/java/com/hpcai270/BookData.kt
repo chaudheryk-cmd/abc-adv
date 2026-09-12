@@ -1,14 +1,13 @@
 package com.hpcai270
 
-private const val PUBLISHED_DAYS = 45
+private const val PUBLISHED_DAYS = 100
 
 /**
- * Published study book: Days 1-45 only.
+ * Published study book: Days 1-100.
  *
- * There is deliberately NO page-count limit. A day's source material is
- * kept intact, and the deep-dive material is appended instead of compressing
- * the lesson into a fixed two-page spread. Difficult topics can occupy many
- * notebook pages. Depth matters more than symmetry.
+ * There is deliberately NO page-count limit. Source material is kept intact
+ * and the deep-dive material is appended instead of compressing lessons into
+ * a fixed page count. Difficult topics can occupy many notebook pages.
  */
 fun hpcBookDays(): List<Day> {
     val source = listOf(
@@ -17,7 +16,13 @@ fun hpcBookDays(): List<Day> {
         *hpcDaysPart2.toTypedArray(),
         *hpcDaysPart3.toTypedArray(),
         *hpcDaysPart4.take(10).toTypedArray(),
-        *hpcDaysPart5.toTypedArray()
+        *hpcDaysPart5.toTypedArray(),
+        *hpcDaysPart6.toTypedArray(),
+        *hpcDaysPart7.toTypedArray(),
+        *hpcDaysPart8.toTypedArray(),
+        *hpcDaysPart9.toTypedArray(),
+        *hpcDaysPart10.toTypedArray(),
+        *hpcDaysPart11.toTypedArray()
     ).distinctBy { it.number }
         .sortedBy { it.number }
         .take(PUBLISHED_DAYS)
