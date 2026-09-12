@@ -17,7 +17,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 
-private const val PUBLISHED_DAYS = 45
+private const val PUBLISHED_DAYS = 270
+private const val PREFS = "hpc_book"
+private const val KEY_COMPLETED = "completed"
+private const val KEY_LAST_DAY = "last_day"
+private const val KEY_LAST_PAGE = "last_page"
+private const val KEY_BOOKMARK_DAY = "bookmark_day"
+private const val KEY_BOOKMARK_PAGE = "bookmark_page"
 private val AppChrome = Color(0xFF101A27)
 
 class MainActivity : ComponentActivity() {
@@ -42,29 +48,51 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun HpcBookPremium(c: Context) {
-    val prefs = remember { c.getSharedPreferences("hpc_book", Context.MODE_PRIVATE) }
+    val prefs = remember { c.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
     val book = remember { hpcBookDays() }
-    var completed by remember { mutableIntStateOf(prefs.getInt("completed", 0).coerceIn(0, PUBLISHED_DAYS)) }
-    var selectedDay by remember { mutableIntStateOf(completed.coerceIn(0, PUBLISHED_DAYS - 1)) }
-    var selectedPage by remember { mutableIntStateOf(0) }
+
+    var completed by remember { mutableIntStateOf(prefs.getInt(KEY_COMPLETED, 0).coerceIn(0, PUBLISHED_DAYS)) }
+    var selectedDay by remember {
+        mutableIntStateOf(
+            prefs.getInt(KEY_LAST_DAY, completed.coerceAtMost(PUBLISHED_DAYS - 1))
+                .coerceIn(0, PUBLISHED_DAYS - 1)
+        )
+    }
+    var selectedPage by remember {
+        mutableIntStateOf(
+            prefs.getInt(KEY_LAST_PAGE, 0).coerceAtLeast(0)
+        )
+    }
     var open by remember { mutableStateOf(false) }
     var showIndex by remember { mutableStateOf(false) }
-    var bookmarkDay by remember { mutableIntStateOf(prefs.getInt("bookmark_day", -1)) }
-    var bookmarkPage by remember { mutableIntStateOf(prefs.getInt("bookmark_page", -1)) }
+    var bookmarkDay by remember { mutableIntStateOf(prefs.getInt(KEY_BOOKMARK_DAY, -1)) }
+    var bookmarkPage by remember { mutableIntStateOf(prefs.getInt(KEY_BOOKMARK_PAGE, -1)) }
+
+    fun persistPosition(day: Int, page: Int) {
+        if (day !in book.indices) return
+        val safePage = page.coerceIn(0, book[day].pages.lastIndex.coerceAtLeast(0))
+        prefs.edit().putInt(KEY_LAST_DAY, day).putInt(KEY_LAST_PAGE, safePage).apply()
+        selectedDay = day
+        selectedPage = safePage
+    }
 
     fun saveBookmark(day: Int, page: Int) {
-        prefs.edit().putInt("bookmark_day", day).putInt("bookmark_page", page).apply()
+        prefs.edit().putInt(KEY_BOOKMARK_DAY, day).putInt(KEY_BOOKMARK_PAGE, page).apply()
         bookmarkDay = day
         bookmarkPage = page
     }
 
     fun openAt(day: Int, page: Int) {
         if (day !in book.indices) return
-        selectedDay = day
-        selectedPage = page.coerceIn(0, book[day].pages.lastIndex.coerceAtLeast(0))
+        persistPosition(day, page)
         open = true
         showIndex = false
     }
+
+    val safeSelectedPage = selectedPage.coerceIn(
+        0,
+        book.getOrNull(selectedDay)?.pages?.lastIndex?.coerceAtLeast(0) ?: 0
+    )
 
     when {
         showIndex -> BookIndex(
@@ -74,41 +102,59 @@ private fun HpcBookPremium(c: Context) {
             openPage = ::openAt,
             close = { showIndex = false }
         )
+
         !open -> Cover(
             day = completed,
+            currentDay = selectedDay,
+            currentPage = safeSelectedPage,
             start = {
-                selectedDay = completed.coerceIn(0, PUBLISHED_DAYS - 1)
-                selectedPage = 0
+                persistPosition(selectedDay, safeSelectedPage)
                 open = true
             },
             openIndex = { showIndex = true },
-            openBookmark = { if (bookmarkDay >= 0 && bookmarkPage >= 0) openAt(bookmarkDay, bookmarkPage) },
+            openBookmark = {
+                if (bookmarkDay >= 0 && bookmarkPage >= 0) openAt(bookmarkDay, bookmarkPage)
+            },
             hasBookmark = bookmarkDay >= 0 && bookmarkPage >= 0,
             openPage = ::openAt
         )
+
         else -> Reader(
             di = selectedDay,
-            page = selectedPage,
-            setPage = { selectedPage = it.coerceIn(0, book[selectedDay].pages.lastIndex.coerceAtLeast(0)) },
-            close = { open = false },
-            complete = {
-                if (selectedDay < PUBLISHED_DAYS) {
-                    val newCompleted = maxOf(completed, selectedDay + 1).coerceAtMost(PUBLISHED_DAYS)
-                    prefs.edit().putInt("completed", newCompleted).apply()
-                    completed = newCompleted
-                }
-                selectedDay = (selectedDay + 1).coerceAtMost(PUBLISHED_DAYS - 1)
-                selectedPage = 0
+            page = safeSelectedPage,
+            setPage = { persistPosition(selectedDay, it) },
+            close = {
+                persistPosition(selectedDay, safeSelectedPage)
                 open = false
             },
+            complete = {
+                val dayCompleted = selectedDay
+                val newCompleted = maxOf(completed, dayCompleted + 1).coerceAtMost(PUBLISHED_DAYS)
+                prefs.edit().putInt(KEY_COMPLETED, newCompleted).apply()
+                completed = newCompleted
+
+                if (dayCompleted < PUBLISHED_DAYS - 1) {
+                    // Completion advances directly into the next day instead of
+                    // throwing the learner back to the cover screen.
+                    persistPosition(dayCompleted + 1, 0)
+                    open = true
+                } else {
+                    // Day 270 is the end of the curriculum. Keep the final
+                    // position saved and return to the dashboard only here.
+                    persistPosition(PUBLISHED_DAYS - 1, 0)
+                    open = false
+                }
+            },
             openIndex = { showIndex = true },
-            bookmarked = bookmarkDay == selectedDay && bookmarkPage == selectedPage,
+            bookmarked = bookmarkDay == selectedDay && bookmarkPage == safeSelectedPage,
             toggleBookmark = {
-                if (bookmarkDay == selectedDay && bookmarkPage == selectedPage) {
-                    prefs.edit().remove("bookmark_day").remove("bookmark_page").apply()
+                if (bookmarkDay == selectedDay && bookmarkPage == safeSelectedPage) {
+                    prefs.edit().remove(KEY_BOOKMARK_DAY).remove(KEY_BOOKMARK_PAGE).apply()
                     bookmarkDay = -1
                     bookmarkPage = -1
-                } else saveBookmark(selectedDay, selectedPage)
+                } else {
+                    saveBookmark(selectedDay, safeSelectedPage)
+                }
             }
         )
     }
