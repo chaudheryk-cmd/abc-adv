@@ -175,7 +175,7 @@ private fun ProgressHero(completed: Int, onClick: () -> Unit) {
 }
 
 @Composable
-private fun QuickAction(icon: String, title: String, subtitle: String, onClick: () -> Unit) {
+private fun RowScope.QuickAction(icon: String, title: String, subtitle: String, onClick: () -> Unit) {
     Column(Modifier.weight(1f).height(91.dp).clickable(onClick = onClick).background(Color(0x99152235), RoundedCornerShape(14.dp)).border(1.dp, Color(0xFF293E59), RoundedCornerShape(14.dp)).padding(7.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(icon, color = Blue, fontSize = 25.sp)
         Text(title, color = White, fontSize = 9.sp, fontWeight = FontWeight.Black)
@@ -184,7 +184,7 @@ private fun QuickAction(icon: String, title: String, subtitle: String, onClick: 
 }
 
 @Composable
-private fun ModuleCard(icon: String, title: String, subtitle: String, accent: Color, onClick: () -> Unit) {
+private fun RowScope.ModuleCard(icon: String, title: String, subtitle: String, accent: Color, onClick: () -> Unit) {
     Row(Modifier.weight(1f).height(92.dp).clickable(onClick = onClick).background(Color(0xCC111F31), RoundedCornerShape(17.dp)).border(1.dp, accent.copy(alpha = .75f), RoundedCornerShape(17.dp)).padding(11.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(icon, color = accent, fontSize = 29.sp)
         Spacer(Modifier.width(9.dp))
