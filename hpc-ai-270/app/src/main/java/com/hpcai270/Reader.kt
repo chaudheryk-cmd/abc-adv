@@ -18,8 +18,8 @@ private const val TOTAL_DAYS = 270
 
 @Composable
 fun Reader(di:Int,page:Int,setPage:(Int)->Unit,close:()->Unit,complete:()->Unit){
-    // Day 1 uses the expanded chapter; days 2–5 come from the original Part 1 data.
-    val all=listOf(day1Expanded)+hpcDaysPart1.drop(1)+hpcDaysPart2+hpcDaysPart3+hpcDaysPart4
+    // Day 1 is expanded separately; Days 2–45 are expanded lesson data; later days remain in their staged data sets.
+    val all=listOf(day1Expanded)+hpcDaysPart1.drop(1)+hpcDaysPart2+hpcDaysPart3+hpcDaysPart4.take(10)+hpcDaysPart5+hpcDaysPart4.drop(30)
     val d=all.getOrNull(di)
     val pageCount=d?.pages?.size ?: 2
     val safePage=page.coerceIn(0,pageCount-1)
