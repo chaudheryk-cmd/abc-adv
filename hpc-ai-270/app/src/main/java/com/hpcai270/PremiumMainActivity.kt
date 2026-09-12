@@ -53,16 +53,9 @@ private fun HpcBookPremium(c: Context) {
 
     var completed by remember { mutableIntStateOf(prefs.getInt(KEY_COMPLETED, 0).coerceIn(0, PUBLISHED_DAYS)) }
     var selectedDay by remember {
-        mutableIntStateOf(
-            prefs.getInt(KEY_LAST_DAY, completed.coerceAtMost(PUBLISHED_DAYS - 1))
-                .coerceIn(0, PUBLISHED_DAYS - 1)
-        )
+        mutableIntStateOf(prefs.getInt(KEY_LAST_DAY, completed.coerceAtMost(PUBLISHED_DAYS - 1)).coerceIn(0, PUBLISHED_DAYS - 1))
     }
-    var selectedPage by remember {
-        mutableIntStateOf(
-            prefs.getInt(KEY_LAST_PAGE, 0).coerceAtLeast(0)
-        )
-    }
+    var selectedPage by remember { mutableIntStateOf(prefs.getInt(KEY_LAST_PAGE, 0).coerceAtLeast(0)) }
     var open by remember { mutableStateOf(false) }
     var showIndex by remember { mutableStateOf(false) }
     var bookmarkDay by remember { mutableIntStateOf(prefs.getInt(KEY_BOOKMARK_DAY, -1)) }
@@ -89,10 +82,7 @@ private fun HpcBookPremium(c: Context) {
         showIndex = false
     }
 
-    val safeSelectedPage = selectedPage.coerceIn(
-        0,
-        book.getOrNull(selectedDay)?.pages?.lastIndex?.coerceAtLeast(0) ?: 0
-    )
+    val safeSelectedPage = selectedPage.coerceIn(0, book.getOrNull(selectedDay)?.pages?.lastIndex?.coerceAtLeast(0) ?: 0)
 
     when {
         showIndex -> BookIndex(
@@ -103,8 +93,8 @@ private fun HpcBookPremium(c: Context) {
             close = { showIndex = false }
         )
 
-        !open -> Cover(
-            day = completed,
+        !open -> CoverV2(
+            completed = completed,
             currentDay = selectedDay,
             currentPage = safeSelectedPage,
             start = {
@@ -112,9 +102,7 @@ private fun HpcBookPremium(c: Context) {
                 open = true
             },
             openIndex = { showIndex = true },
-            openBookmark = {
-                if (bookmarkDay >= 0 && bookmarkPage >= 0) openAt(bookmarkDay, bookmarkPage)
-            },
+            openBookmark = { if (bookmarkDay >= 0 && bookmarkPage >= 0) openAt(bookmarkDay, bookmarkPage) },
             hasBookmark = bookmarkDay >= 0 && bookmarkPage >= 0,
             openPage = ::openAt
         )
@@ -134,13 +122,9 @@ private fun HpcBookPremium(c: Context) {
                 completed = newCompleted
 
                 if (dayCompleted < PUBLISHED_DAYS - 1) {
-                    // Completion advances directly into the next day instead of
-                    // throwing the learner back to the cover screen.
                     persistPosition(dayCompleted + 1, 0)
                     open = true
                 } else {
-                    // Day 270 is the end of the curriculum. Keep the final
-                    // position saved and return to the dashboard only here.
                     persistPosition(PUBLISHED_DAYS - 1, 0)
                     open = false
                 }
