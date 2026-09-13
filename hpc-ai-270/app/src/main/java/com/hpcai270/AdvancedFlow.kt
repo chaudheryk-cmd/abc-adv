@@ -22,6 +22,14 @@ private val AFGreen = Color(0xFF3D866C)
 private val AFOrange = Color(0xFFC97832)
 private val AFPaper = Color(0xFFF1F6FA)
 
+/**
+ * Responsive architecture diagram used throughout the field manual.
+ *
+ * The old implementation forced six nodes + arrows into one horizontal Row,
+ * which could push the final nodes outside the card on narrow phones.
+ * This version deliberately uses three nodes per row.  It therefore has a
+ * deterministic layout on phones, tablets and split-screen windows.
+ */
 @Composable
 fun AdvancedFlowDiagram(day: Int) {
     val model = when (day) {
@@ -38,15 +46,74 @@ fun AdvancedFlowDiagram(day: Int) {
     }
 
     Card(colors = CardDefaults.cardColors(containerColor = AFPaper), shape = RoundedCornerShape(16.dp)) {
-        Column(Modifier.fillMaxWidth().padding(11.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-            Text(model.title, fontFamily = Handwritten, fontWeight = FontWeight.Black, fontSize = 17.sp, color = AFPurple)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
-                model.nodes.forEachIndexed { index, label ->
-                    FlowBox(label, when (index % 4) { 0 -> AFBlue; 1 -> AFPurple; 2 -> AFGreen; else -> AFOrange })
-                    if (index < model.nodes.lastIndex) Text("→", fontFamily = Handwritten, fontWeight = FontWeight.Bold, color = AFPurple, fontSize = 16.sp)
+        Column(
+            Modifier.fillMaxWidth().padding(11.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                model.title,
+                fontFamily = Handwritten,
+                fontWeight = FontWeight.Black,
+                fontSize = 17.sp,
+                color = AFPurple,
+                maxLines = 2
+            )
+            ResponsiveFlowGrid(model.nodes)
+            Text(
+                model.caption,
+                fontFamily = Handwritten,
+                fontSize = 14.sp,
+                lineHeight = 19.sp,
+                color = AFInk,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun ResponsiveFlowGrid(nodes: List<String>) {
+    val safeNodes = nodes.take(6)
+    val rows = safeNodes.chunked(3)
+
+    Column(
+        Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        rows.forEachIndexed { rowIndex, row ->
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                row.forEachIndexed { columnIndex, label ->
+                    FlowBox(
+                        label = label,
+                        color = when ((rowIndex * 3 + columnIndex) % 4) {
+                            0 -> AFBlue
+                            1 -> AFPurple
+                            2 -> AFGreen
+                            else -> AFOrange
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (columnIndex < row.lastIndex) {
+                        Text("→", fontFamily = Handwritten, fontWeight = FontWeight.Bold, color = AFPurple, fontSize = 15.sp)
+                    }
                 }
             }
-            Text(model.caption, fontFamily = Handwritten, fontSize = 14.sp, color = AFInk, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            if (rowIndex < rows.lastIndex) {
+                Text(
+                    "↓",
+                    fontFamily = Handwritten,
+                    fontWeight = FontWeight.Bold,
+                    color = AFPurple,
+                    fontSize = 17.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
@@ -54,8 +121,23 @@ fun AdvancedFlowDiagram(day: Int) {
 private data class FlowModel(val title: String, val nodes: List<String>, val caption: String)
 
 @Composable
-private fun FlowBox(label: String, color: Color) {
-    Box(Modifier.width(56.dp).height(42.dp).background(color, RoundedCornerShape(9.dp)).padding(3.dp), contentAlignment = Alignment.Center) {
-        Text(label, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = Color.White, textAlign = TextAlign.Center)
+private fun FlowBox(label: String, color: Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .heightIn(min = 42.dp, max = 50.dp)
+            .background(color, RoundedCornerShape(9.dp))
+            .padding(horizontal = 3.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            label,
+            fontFamily = Handwritten,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp,
+            lineHeight = 11.sp,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            maxLines = 2
+        )
     }
 }
