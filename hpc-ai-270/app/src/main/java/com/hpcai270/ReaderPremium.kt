@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -68,7 +69,7 @@ fun Reader(di: Int, page: Int, setPage: (Int) -> Unit, close: () -> Unit, comple
                 else -> safePage
             }
             if (d == null) {
-                Text("This lesson could not be loaded. Return to the index and reopen the day.", color = Color.White, fontFamily = Handwritten, fontSize = 18.sp)
+                Text("This lesson could not be loaded. Return to the index and reopen the day.", color = Color.White, fontFamily = Handwritten, fontSize = 18.sp, textAlign = TextAlign.Center)
             } else {
                 if (targetPage != safePage) {
                     NotebookPage(d, targetPage, Modifier.fillMaxSize().graphicsLayer {
@@ -126,14 +127,14 @@ private fun safePageFor(page: Int, pageCount: Int) = page.coerceIn(0, (pageCount
 @Composable
 private fun ReaderTopBar(day: Int, page: Int, pageCount: Int, bookmarked: Boolean, close: () -> Unit, openIndex: () -> Unit, toggleBookmark: () -> Unit) {
     Row(Modifier.fillMaxWidth().height(60.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        TextButton(onClick = close) { Text("‹  Close", color = Color.White, fontFamily = Handwritten, fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
+        TextButton(onClick = close) { Text("‹  Close", color = Color.White, fontFamily = Handwritten, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1) }
         Spacer(Modifier.weight(1f))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("KUNAL'S JOURNEY", color = Color.White, fontFamily = Handwritten, fontWeight = FontWeight.Black, fontSize = 12.sp, letterSpacing = 1.2.sp)
-            Text("HPC + AI  •  DAY ${day + 1}  •  ${page + 1}/$pageCount", color = Color(0xFFC8D2DF), fontFamily = Handwritten, fontSize = 11.sp)
+            Text("KUNAL'S JOURNEY", color = Color.White, fontFamily = Handwritten, fontWeight = FontWeight.Black, fontSize = 12.sp, letterSpacing = 1.2.sp, maxLines = 1)
+            Text("HPC + AI  •  DAY ${day + 1}  •  ${page + 1}/$pageCount", color = Color(0xFFC8D2DF), fontFamily = Handwritten, fontSize = 11.sp, maxLines = 1)
         }
         Spacer(Modifier.weight(1f))
-        TextButton(onClick = openIndex) { Text("INDEX", color = Color.White, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 11.sp) }
+        TextButton(onClick = openIndex) { Text("INDEX", color = Color.White, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 11.sp, maxLines = 1) }
         IconButton(onClick = toggleBookmark) { Text(if (bookmarked) "★" else "☆", fontFamily = Handwritten, color = if (bookmarked) Color(0xFFFFD86B) else Color.White, fontSize = 27.sp) }
     }
 }
@@ -142,12 +143,12 @@ private fun ReaderTopBar(day: Int, page: Int, pageCount: Int, bookmarked: Boolea
 private fun ReaderBottomBar(page: Int, pageCount: Int, setPage: (Int) -> Unit, complete: () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.weight(1f).padding(end = 6.dp), contentAlignment = Alignment.Center) {
-            OutlinedButton(onClick = { setPage((page - 1).coerceAtLeast(0)) }, enabled = page > 0, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) { Text("← Previous", fontFamily = Handwritten, fontSize = 16.sp) }
+            OutlinedButton(onClick = { setPage((page - 1).coerceAtLeast(0)) }, enabled = page > 0, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) { Text("← Previous", fontFamily = Handwritten, fontSize = 15.sp, maxLines = 1) }
         }
-        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Text("PAGE ${page + 1} / $pageCount", color = Color(0xFFD2D9E2), fontFamily = Handwritten, fontSize = 15.sp, maxLines = 1) }
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Text("PAGE ${page + 1} / $pageCount", color = Color(0xFFD2D9E2), fontFamily = Handwritten, fontSize = 14.sp, maxLines = 1, textAlign = TextAlign.Center) }
         Box(Modifier.weight(1f).padding(start = 6.dp), contentAlignment = Alignment.Center) {
-            if (page < pageCount - 1) Button(onClick = { setPage(page + 1) }, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) { Text("Next  →", fontFamily = Handwritten, fontSize = 17.sp) }
-            else Button(onClick = complete, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) { Text("✓  Complete Day", fontFamily = Handwritten, fontSize = 16.sp, maxLines = 1) }
+            if (page < pageCount - 1) Button(onClick = { setPage(page + 1) }, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) { Text("Next  →", fontFamily = Handwritten, fontSize = 16.sp, maxLines = 1) }
+            else Button(onClick = complete, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(18.dp)) { Text("✓  Complete Day", fontFamily = Handwritten, fontSize = 14.sp, maxLines = 1) }
         }
     }
 }
@@ -174,27 +175,35 @@ private fun NotebookPage(d: Day, page: Int, modifier: Modifier = Modifier) {
                     PremiumContent(content)
                 }
                 Spacer(Modifier.height(18.dp))
-                Text(if (page == d.pages.lastIndex) "✎ END OF DAY ${d.number} — explain the topic from memory before moving on" else "↳ keep reading — this lesson is intentionally deeper than a fixed page count", fontFamily = Handwritten, fontSize = 16.sp, color = Muted)
+                Text(if (page == d.pages.lastIndex) "✎ END OF DAY ${d.number} — explain the topic from memory before moving on" else "↳ keep reading — this lesson is intentionally deeper than a fixed page count", fontFamily = Handwritten, fontSize = 16.sp, lineHeight = 22.sp, color = Muted)
             }
             Canvas(Modifier.align(Alignment.BottomEnd).size(30.dp)) { drawLine(Color(0xFFC8BCA4), Offset(2f, 28f), Offset(28f, 2f), 2f) }
         }
     }
 }
 
+/**
+ * Responsive page header: the day badge and page number share one compact row,
+ * while the lesson title/topic always get their own full-width lines. This
+ * prevents long lesson titles from competing with the badge and page counter.
+ */
 @Composable
 private fun BookPageHeader(d: Day, page: Int, pageCount: Int) {
-    Row(verticalAlignment = Alignment.Top) {
-        Box(Modifier.background(listOf(Yellow, Pink, Sky, Green, Orange)[(d.number - 1).mod(5)], RoundedCornerShape(10.dp)).padding(horizontal = 11.dp, vertical = 7.dp)) { Text("DAY ${d.number}", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink) }
-        Spacer(Modifier.width(10.dp))
-        Column(Modifier.weight(1f)) {
-            Text(d.title, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 29.sp, maxLines = 3, color = BlueInk)
-            Text(d.topic, fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 20.sp, color = Plum, maxLines = 3)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.background(listOf(Yellow, Pink, Sky, Green, Orange)[(d.number - 1).mod(5)], RoundedCornerShape(10.dp)).padding(horizontal = 11.dp, vertical = 7.dp)) {
+                Text("DAY ${d.number}", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Ink, maxLines = 1)
+            }
+            Spacer(Modifier.weight(1f))
+            Text("${page + 1}/$pageCount", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Muted, maxLines = 1)
         }
-        Text("${page + 1}/$pageCount", fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Muted)
+        Text(d.title, fontFamily = Handwritten, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 30.sp, maxLines = 4, color = BlueInk)
+        Text(d.topic, fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 21.sp, color = Plum, maxLines = 4)
     }
 }
 
-@Composable private fun RuledPaper() {
+@Composable
+private fun RuledPaper() {
     Canvas(Modifier.fillMaxSize()) {
         var y = 55f
         while (y < size.height) { drawLine(Rule, Offset(0f, y), Offset(size.width, y), 1f); y += 28f }
@@ -202,7 +211,8 @@ private fun BookPageHeader(d: Day, page: Int, pageCount: Int) {
     }
 }
 
-@Composable private fun PremiumContent(raw: String) {
+@Composable
+private fun PremiumContent(raw: String) {
     val lines = raw.replace("\r", "").split("\n")
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         lines.forEachIndexed { index, original ->
@@ -213,13 +223,13 @@ private fun BookPageHeader(d: Day, page: Int, pageCount: Int) {
             when {
                 heading -> {
                     val fill = listOf(Pink, Yellow, Sky, Green, Orange)[index.mod(5)]
-                    Box(Modifier.background(fill, RoundedCornerShape(7.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) { Text(line.removePrefix("#").trim(), fontFamily = Handwritten, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink) }
+                    Box(Modifier.fillMaxWidth().background(fill, RoundedCornerShape(7.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) { Text(line.removePrefix("#").trim(), fontFamily = Handwritten, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink, maxLines = 3) }
                 }
                 bullet -> Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-                    Text("✦", fontFamily = Handwritten, fontWeight = FontWeight.Bold, color = Plum, fontSize = 18.sp, modifier = Modifier.width(21.dp))
-                    Text(cleanBullet(line), fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 25.sp, color = BlueInk)
+                    Text("✦", fontFamily = Handwritten, fontWeight = FontWeight.Bold, color = Plum, fontSize = 18.sp, modifier = Modifier.width(21.dp), maxLines = 1)
+                    Text(cleanBullet(line), fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 25.sp, color = BlueInk, modifier = Modifier.weight(1f))
                 }
-                else -> Text(line.replace("**", ""), fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 25.sp, color = BlueInk)
+                else -> Text(line.replace("**", ""), fontFamily = Handwritten, fontSize = 18.sp, lineHeight = 25.sp, color = BlueInk, modifier = Modifier.fillMaxWidth())
             }
         }
     }
