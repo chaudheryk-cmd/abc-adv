@@ -4,29 +4,50 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:fillColor="#071225" android:pathData="M54,2 C82.72,2 106,25.28 106,54 C106,82.72 82.72,106 54,106 C25.28,106 2,82.72 2,54 C2,25.28 25.28,2 54,2 Z"/>
-    <path android:fillColor="@android:color/transparent" android:strokeColor="#1E8BFF" android:strokeWidth="2" android:pathData="M54,7 C79.96,7 101,28.04 101,54 C101,79.96 79.96,101 54,101 C28.04,101 7,79.96 7,54 C7,28.04 28.04,7 54,7 Z"/>
-    <path android:fillColor="@android:color/transparent" android:strokeColor="#70C7FF" android:strokeWidth="0.8" android:pathData="M54,12 C77.2,12 96,30.8 96,54 C96,77.2 77.2,96 54,96 C30.8,96 12,77.2 12,54 C12,30.8 30.8,12 54,12 Z"/>
-    <path android:fillColor="#DDEBFF" android:pathData="M30.36,23.39C29.6,23.03 29.26,22.13 29.62,21.37C29.98,20.61 30.88,20.27 31.64,20.63L34.01,21.75C34.77,22.11 35.11,23.01 34.75,23.77C34.39,24.53 33.49,24.87 32.73,24.51Z"/>
-    <path android:fillColor="#DDEBFF" android:pathData="M35.32,18.42C34.72,17.82 34.72,16.85 35.32,16.25C35.92,15.65 36.89,15.65 37.49,16.25L39.36,18.12C39.96,18.72 39.96,19.69 39.36,20.29C38.76,20.89 37.79,20.89 37.19,20.29Z"/>
-    <path android:fillColor="#DDEBFF" android:pathData="M42.58,15.44C42.36,14.61 42.85,13.76 43.68,13.54C44.51,13.32 45.36,13.81 45.58,14.64L46.27,17.2C46.49,18.03 46,18.88 45.17,19.1C44.34,19.32 43.49,18.83 43.27,18Z"/>
-    <path android:fillColor="#DDEBFF" android:pathData="M62.42,14.64C62.64,13.81 63.49,13.32 64.32,13.54C65.15,13.76 65.64,14.61 65.42,15.44L64.73,18C64.51,18.83 63.66,19.32 62.83,19.1C62,18.88 61.51,18.03 61.73,17.2Z"/>
-    <path android:fillColor="#DDEBFF" android:pathData="M70.51,16.25C71.11,15.65 72.08,15.65 72.68,16.25C73.28,16.85 73.28,17.82 72.68,18.42L70.81,20.29C70.21,20.89 69.24,20.89 68.64,20.29C68.04,19.69 68.04,18.72 68.64,18.12Z"/>
-    <path android:fillColor="#DDEBFF" android:pathData="M76.36,20.63C77.12,20.27 78.02,20.61 78.38,21.37C78.74,22.13 78.4,23.03 77.64,23.39L75.27,24.51C74.51,24.87 73.61,24.53 73.25,23.77C72.89,23.01 73.23,22.11 73.99,21.75Z"/>
-    <path android:fillColor="#70C7FF" android:pathData="M30.7,84.2C29.94,83.84 29.6,82.94 29.96,82.18C30.32,81.42 31.22,81.08 31.98,81.44L34.35,82.56C35.11,82.92 35.45,83.82 35.09,84.58C34.73,85.34 33.83,85.68 33.07,85.32Z"/>
-    <path android:fillColor="#70C7FF" android:pathData="M37.19,87.71C37.79,87.11 38.76,87.11 39.36,87.71C39.96,88.31 39.96,89.28 39.36,89.88L37.49,91.75C36.89,92.35 35.92,92.35 35.32,91.75C34.72,91.15 34.72,90.18 35.32,89.58Z"/>
-    <path android:fillColor="#70C7FF" android:pathData="M43.27,90C43.49,89.17 44.34,88.68 45.17,88.9C46,89.12 46.49,89.97 46.27,90.8L45.58,93.36C45.36,94.19 44.51,94.68 43.68,94.46C42.85,94.24 42.36,93.39 42.58,92.56Z"/>
-    <path android:fillColor="#70C7FF" android:pathData="M61.73,90.8C61.51,89.97 62,89.12 62.83,88.9C63.66,88.68 64.51,89.17 64.73,90L65.42,92.56C65.64,93.39 65.15,94.24 64.32,94.46C63.49,94.68 62.64,94.19 62.42,93.36Z"/>
-    <path android:fillColor="#70C7FF" android:pathData="M68.64,89.88C68.04,89.28 68.04,88.31 68.64,87.71C69.24,87.11 70.21,87.11 70.81,87.71L72.68,89.58C73.28,90.18 73.28,91.15 72.68,91.75C72.08,92.35 71.11,92.35 70.51,91.75Z"/>
-    <path android:fillColor="#70C7FF" android:pathData="M73.25,84.58C72.89,83.82 73.23,82.92 73.99,82.56L76.36,81.44C77.12,81.08 78.02,81.42 78.38,82.18C78.74,82.94 78.4,83.84 77.64,84.2L75.27,85.32C74.51,85.68 73.61,85.34 73.25,84.58Z"/>
-    <!-- central HPC cluster -->
-    <path android:fillColor="#0C1D35" android:strokeColor="#FFFFFF" android:strokeWidth="1.1" android:pathData="M30,44 L78,44 L78,70 L30,70 Z"/>
-    <path android:fillColor="#16375E" android:pathData="M34,48 L74,48 L74,54 L34,54 Z"/>
-    <path android:fillColor="#16375E" android:pathData="M34,57 L74,57 L74,63 L34,63 Z"/>
-    <path android:fillColor="#16375E" android:pathData="M34,66 L74,66 L74,69 L34,69 Z"/>
-    <path android:fillColor="#4DB7FF" android:pathData="M38,50 L41,50 L41,52 L38,52 Z M44,50 L47,50 L47,52 L44,52 Z M50,50 L53,50 L53,52 L50,52 Z M56,50 L59,50 L59,52 L56,52 Z M62,50 L65,50 L65,52 L62,52 Z M68,50 L71,50 L71,52 L68,52 Z"/>
-    <path android:fillColor="#4DB7FF" android:pathData="M38,59 L41,59 L41,61 L38,61 Z M44,59 L47,59 L47,61 L44,61 Z M50,59 L53,59 L53,61 L50,61 Z M56,59 L59,59 L59,61 L56,61 Z M62,59 L65,59 L65,61 L62,61 Z M68,59 L71,59 L71,61 L68,61 Z"/>
-    <path android:fillColor="#8ED8FF" android:pathData="M39,73 L69,73 L69,75 L39,75 Z"/>
-    <path android:fillColor="#8ED8FF" android:pathData="M46,77 L62,77 L62,79 L46,79 Z"/>
-    <path android:fillColor="#FFFFFF" android:pathData="M49,35 L59,35 L59,39 L49,39 Z M51,31 L57,31 L57,35 L51,35 Z"/>
+
+    <!-- Clean HPC + AI mark: accelerator core, data lanes, and AI nodes. -->
+    <path
+        android:fillColor="#0B1B33"
+        android:strokeColor="#2EA8FF"
+        android:strokeWidth="2.2"
+        android:pathData="M29,31 L79,31 L79,77 L29,77 Z" />
+
+    <!-- GPU / accelerator core -->
+    <path
+        android:fillColor="#12345A"
+        android:strokeColor="#8BD8FF"
+        android:strokeWidth="1.6"
+        android:pathData="M39,40 L69,40 L69,68 L39,68 Z" />
+    <path
+        android:fillColor="#1E8BFF"
+        android:pathData="M45,46 L63,46 L63,62 L45,62 Z" />
+
+    <!-- Compute lanes -->
+    <path android:fillColor="#DDF4FF" android:pathData="M48,49 L51,49 L51,59 L48,59 Z" />
+    <path android:fillColor="#DDF4FF" android:pathData="M54,49 L57,49 L57,59 L54,59 Z" />
+    <path android:fillColor="#DDF4FF" android:pathData="M60,49 L63,49 L63,59 L60,59 Z" />
+
+    <!-- Data / network lanes entering the accelerator -->
+    <path android:fillColor="#56C2FF" android:pathData="M20,43 L29,43 L29,46 L20,46 Z" />
+    <path android:fillColor="#56C2FF" android:pathData="M20,53 L29,53 L29,56 L20,56 Z" />
+    <path android:fillColor="#56C2FF" android:pathData="M20,63 L29,63 L29,66 L20,66 Z" />
+    <path android:fillColor="#56C2FF" android:pathData="M79,43 L88,43 L88,46 L79,46 Z" />
+    <path android:fillColor="#56C2FF" android:pathData="M79,53 L88,53 L88,56 L79,56 Z" />
+    <path android:fillColor="#56C2FF" android:pathData="M79,63 L88,63 L88,66 L79,66 Z" />
+
+    <!-- AI neural nodes -->
+    <path android:fillColor="#FFFFFF" android:pathData="M27,22 A5,5 0,1 0,27,32 A5,5 0,1 0,27,22" />
+    <path android:fillColor="#70C7FF" android:pathData="M54,14 A5,5 0,1 0,54,24 A5,5 0,1 0,54,14" />
+    <path android:fillColor="#FFFFFF" android:pathData="M81,22 A5,5 0,1 0,81,32 A5,5 0,1 0,81,22" />
+    <path android:fillColor="#70C7FF" android:pathData="M27,76 A5,5 0,1 0,27,86 A5,5 0,1 0,27,76" />
+    <path android:fillColor="#70C7FF" android:pathData="M81,76 A5,5 0,1 0,81,86 A5,5 0,1 0,81,76" />
+
+    <!-- Neural connections -->
+    <path android:fillColor="#2EA8FF" android:pathData="M30,29 L40,39 L38,41 L28,31 Z" />
+    <path android:fillColor="#2EA8FF" android:pathData="M78,29 L68,39 L70,41 L80,31 Z" />
+    <path android:fillColor="#2EA8FF" android:pathData="M30,79 L40,69 L38,67 L28,77 Z" />
+    <path android:fillColor="#2EA8FF" android:pathData="M78,79 L68,69 L70,67 L80,77 Z" />
+
+    <!-- Subtle rack base -->
+    <path android:fillColor="#8BD8FF" android:pathData="M37,72 L71,72 L71,75 L37,75 Z" />
 </vector>
